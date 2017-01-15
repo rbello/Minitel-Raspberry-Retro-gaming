@@ -2,19 +2,20 @@
 
 // -- Configuration des pins
 
-#define PIN_LED_R 11      // Pin LED couleur ROUGE
-#define PIN_LED_Y 10      // Pin LED couleur VERT
-#define PIN_PWR_RPI 3     // Pin allumage alimentation Raspberry Pi (5V)
-#define PIN_PWR_SCREEN 4  // Pin allumage alimentation Ecran (12V)
-#define PIN_SWITCH 8      // Pin du switch On/Off
-#define PIN_RUNNING 2     // Pin permettant de récupérer l'état d'alimentation de la Rpi
-#define PIN_POT A3        // Pin du potentiomètre du volume sonore
+#define PIN_LED_R 2       // Pin LED couleur ROUGE
+#define PIN_LED_Y 3       // Pin LED couleur VERT
+#define PIN_PWR_RPI 5     // Pin allumage alimentation Raspberry Pi (5V)
+#define PIN_PWR_SCREEN 6  // Pin allumage alimentation Ecran (12V)
+#define PIN_SWITCH 12     // Pin du switch On/Off
+#define PIN_RUNNING 8     // Pin permettant de récupérer l'état d'alimentation de la Rpi
+#define PIN_POT A0        // Pin du potentiomètre du volume sonore
 
 // -- Configuration des délais (en ms)
 
-#define TTL_STARTING 10000
-#define TTL_SHUTDOWN 10000
+#define TTL_STARTING 30000
+#define TTL_SHUTDOWN 30000
 #define LED_BLINK_DELAY 500
+#define SHUTDOWN_SAFETY_DELAY 1000
 
 // -- Configurations avancées
 
@@ -44,12 +45,14 @@ int volume = 0;
 // Etat du bouton On/Off : ouvert ou fermé
 bool switchState = false;
 
-// Etat de la consigne On/Off : allumé ou éteint
-bool onOff = false;
+// Timestamp du moment où vérifier l'état de la RPI (par gpio)
+long rpiCheckTime = 1;
+
+// Valeur du pin PIN_RUNNING (temporisé pour éviter le changement trop rapide d'état lors du lancement de la rpi)
+int rpiPinValue = 0;
 
 // Conserve l'état de lancement du script python sur le raspberry
-// Arrive par le pin PIN_RUNNING
-int rpiRunning = 0;
+bool rpiState = false;
 
 // Tempon d'écriture I2C vers le raspberry
 volatile byte e_keys;
@@ -97,8 +100,8 @@ void setup()
   Wire.begin(SLAVE_ADDRESS);
   Wire.onRequest(i2c_requests);
 
-  Serial.println("Ready!");
   Serial.println("New state: OFF");
+  Serial.println("Ready!");
 }
 
 void startblink(int pinColor)
@@ -123,6 +126,8 @@ void sendShutdownSignal()
 
 void setPowerEnabled(bool enabled)
 {
+  Serial.print("Set power: ");
+  Serial.println(enabled ? "ON" : "OFF");
   digitalWrite(PIN_PWR_RPI, enabled ? HIGH : LOW);
   digitalWrite(PIN_PWR_SCREEN, enabled ? HIGH : LOW);
 }
@@ -150,15 +155,6 @@ void setStateShutdown() {
 
 void handleStarting()
 {
-  // Détection du signal provenant de la Raspberry Pi pour indiquer son bon démarrage
-  if (millis() - startStopTime > 4000 - 200) {
-    // TODO Changer la condition du test bien entendu ;-)
-    generalState = STATE_STARTED;
-    Serial.println("New state: STARTED");
-    digitalWrite(PIN_LED_R, LOW);
-    digitalWrite(PIN_LED_Y, HIGH);
-    return;
-  }
   // Détection de l'expiration du délais maximum de lancement de la Rpi
   if (millis() - startStopTime > TTL_STARTING) {
     Serial.println("Error: maximum time to start is reached !");
@@ -178,17 +174,6 @@ void handleStarting()
 
 void handleShutdown()
 {
-  // Détection du signal provenant de la Raspberry Pi pour indiquer son arrêt complet
-  if (millis() - startStopTime > TTL_SHUTDOWN - 200) {
-    // TODO Changer la condition du test bien entendu ;-)
-    generalState = STATE_OFF;
-    Serial.println("New state: OFF");
-    digitalWrite(PIN_LED_R, LOW);
-    digitalWrite(PIN_LED_Y, LOW);
-    // On coupe l'alimentation
-    setPowerEnabled(false);
-    return;
-  }
   // Détection de l'expiration du délais maximum d'arrêt de la Rpi
   if (millis() - startStopTime > TTL_SHUTDOWN) {
     Serial.println("Error: maximum time to shutdown is reached !");
@@ -207,7 +192,7 @@ void handleShutdown()
 }
 
 void setStarted(bool onOff) {
-  Serial.print("Consigne : ");
+  Serial.print("Consigne bouton : ");
   Serial.println(onOff ? "ON" : "OFF");
   // Et on modifie l'état
   if (onOff && generalState == STATE_OFF)       setStateStarting();
@@ -221,15 +206,16 @@ void loop()
   //////  GESTION DU BOUTON ON/OFF
   //////
   int btn = digitalRead(PIN_SWITCH);
-  // Changement d'état du bouton ON/OFF : fonctionne uniquement au repos (Off ou Started) pas les états intermédiaires
-  if (btn != switchState && (generalState == STATE_OFF || generalState == STATE_STARTED)) {
-    // Quand le bouton est enfoncé
-    if (btn == 1) {
-      // On inverse la consigne
-      onOff = !onOff;
-      setStarted(onOff);
+  // Changement d'état du bouton ON/OFF
+  if (btn != switchState) {
+    if (btn == 1 && generalState == STATE_OFF) {
+      setStarted(true);
+      switchState = btn;
     }
-    switchState = btn;
+    else if (btn == 0 && generalState == STATE_STARTED) {
+      setStarted(false);
+      switchState = btn;
+    }
   }
   // Gestion des changements d'états
   if (generalState == STATE_STARTING) handleStarting();
@@ -280,10 +266,38 @@ void loop()
   //////  GESTION RECEPTION DE l'ETAT DE LANCEMENT DU SCRIPT PYTHON SUR LE RPI
   //////
   int val = digitalRead(PIN_RUNNING);
-  if (val != rpiRunning) {
-    Serial.print("Rpi running state: ");
-    Serial.println(rpiRunning);
-    rpiRunning = val;
+  if (val != rpiPinValue) {
+    rpiCheckTime = millis() + 1000;
+    rpiPinValue = val;
+  }
+  if (rpiCheckTime > 0 && rpiCheckTime < millis()) {
+    rpiCheckTime = 0;
+    bool state = rpiPinValue ? false : true;
+    if (state != rpiState) {
+      Serial.print("Raspberry state: ");
+      Serial.println(state ? "running" : "stopped");
+      rpiState = state;
+      // La raspberry est lancée
+      if (state && generalState == STATE_STARTING) {
+        generalState = STATE_STARTED;
+        Serial.println("New state: STARTED");
+        digitalWrite(PIN_LED_R, LOW);
+        digitalWrite(PIN_LED_Y, HIGH);
+      }
+      // La raspberry est éteinte
+      else if (!state && generalState == STATE_SHUTDOWN) {
+        digitalWrite(PIN_LED_R, HIGH);
+        digitalWrite(PIN_LED_Y, LOW);
+        // On attend encore un petit peu par sécurité
+        delay(SHUTDOWN_SAFETY_DELAY);
+        generalState = STATE_OFF;
+        Serial.println("New state: OFF");
+        digitalWrite(PIN_LED_R, LOW);
+        digitalWrite(PIN_LED_Y, LOW);
+        // On coupe l'alimentation
+        setPowerEnabled(false);
+      }
+    }
   }
   
 }
