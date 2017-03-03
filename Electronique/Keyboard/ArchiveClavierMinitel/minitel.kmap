@@ -1,0 +1,22 @@
+keymaps 0-1,4-5
+keycode 39 = semicolon plus
+keycode 12 = minus equal
+keycode 53 = colon asterisk
+keycode 26 = question slash
+keycode 4 = three numbersign
+keycode 7 = six ampersand
+keycode 8 = seven acute
+keycode 9 = eight parenleft 
+keycode 10 = nine parenright
+keycode 55 = asterisk bracketleft
+keycode 11 = zero Up
+keycode 27 = numbersign bracketright
+keycode 60 = F2 asciicircum
+keycode 61 = F3 backslash
+keycode 62 = F4 acute 
+keycode 63 = F5 braceleft
+keycode 65 = F7 diaeresis 
+keycode 14 = BackSpace section
+keycode 15 = Tab grave
+keycode 96 = KP_Enter braceright
+
