@@ -7,7 +7,7 @@
 #define PIN_PWR_RPI 5     // Pin allumage alimentation Raspberry Pi (5V)
 #define PIN_PWR_SCREEN 6  // Pin allumage alimentation Ecran (12V)
 #define PIN_SWITCH 12     // Pin du switch On/Off
-#define PIN_RUNNING 8     // Pin permettant de récupérer l'état d'alimentation de la Rpi
+#define PIN_RUNNING 8     // Pin permettant de récupérer l'état d'alimentation de la Rpi (déprécié)
 #define PIN_POT A0        // Pin du potentiomètre du volume sonore
 
 // -- Configuration des délais (en ms)
@@ -15,12 +15,14 @@
 #define TTL_STARTING 30000
 #define TTL_SHUTDOWN 30000
 #define LED_BLINK_DELAY 500
-#define SHUTDOWN_SAFETY_DELAY 1000
+#define SHUTDOWN_SAFETY_DELAY 5000
+#define RPI_ALIVE_TTL 2000
 
 // -- Configurations avancées
 
-#define SERIAL_BAUDRATE 9600
-#define SLAVE_ADDRESS 0x04
+#define SERIAL_BAUDRATE 9600    // Taux de transmission de l'arduino pour la liaison série
+#define SLAVE_ADDRESS 0x04      // Adresse I2C de l'arduino
+#define SHUTDOWN_ON_ERROR true  // Couper l'alimentation de la Rpi si le démarrage échoue
 
 // -- Etats possibles du système
 
@@ -57,20 +59,38 @@ bool rpiState = false;
 // Tempon d'écriture I2C vers le raspberry
 volatile byte e_keys;
 
+// Timestamp de la dernière requête de la RPI
+long rpiLastRequest = 0;
+
+// Indique si la raspberry est connectée en I2C
+bool rpiConnected = false;
+
 // Quand le maitre (raspberry) demande quelque chose à l'esclave (arduino)
 void i2c_requests()
 {
+  //Serial.println("I2C request");
+  rpiLastRequest = millis();
+  if (!rpiConnected) {
+    Serial.println("Raspberry was connected!");
+    rpiConnected = true;
+    if (generalState == STATE_STARTING) {
+      generalState = STATE_STARTED;
+      Serial.println("New state: STARTED");
+      digitalWrite(PIN_LED_R, LOW);
+      digitalWrite(PIN_LED_Y, HIGH);
+    }
+  }
   if (e_keys == 0) return;
   Wire.write(e_keys);
-  //Serial.print("Sent: ");
-  //Serial.println((int)e_keys);
+  Serial.print("I2C sent: ");
+  Serial.println((int)e_keys);
   e_keys = 0;
 }
 
 void i2c_sendData(byte value)
 {
   // Rien ne peut empêcher le signal de shutdown
-  if (e_keys != 200)
+  if (e_keys != 201)
     e_keys = value;
 }
 
@@ -121,7 +141,7 @@ void ledblink(int colorPin)
 
 void sendShutdownSignal()
 {
-  i2c_sendData(200);
+  i2c_sendData(201);
 }
 
 void setPowerEnabled(bool enabled)
@@ -135,6 +155,7 @@ void setPowerEnabled(bool enabled)
 void setStateStarting()
 {
   // Changement d'état
+  startStopTime = millis();
   generalState = STATE_STARTING;
   Serial.println("New state: STARTING");
   // On commence un clignotement vert
@@ -163,7 +184,7 @@ void handleStarting()
     digitalWrite(PIN_LED_R, HIGH);
     digitalWrite(PIN_LED_Y, LOW);
     // On coupe l'alimentation
-    setPowerEnabled(false);
+    if (SHUTDOWN_ON_ERROR) setPowerEnabled(false);
     return;
   }
   // Sinon : clignotement de LED lors du démarrage
@@ -245,7 +266,9 @@ void loop()
     if (data == "help") {
       Serial.println("Commands :");
       Serial.println("  on | off    Change current consigne");
-      Serial.println("  test-i2c    Sent a 111 to the raspberry");
+      Serial.println("  test-i2c    Sent 111 to the raspberry pi");
+      Serial.println("  shutdown    Shutdown the raspberry pi");
+      Serial.println("  reboot      Reboot the raspberry pi");
     }
     else if (data == "on") {
       setStarted(true);
@@ -254,18 +277,40 @@ void loop()
       setStarted(false);
     }
     else if (data == "test-i2c") {
-      Serial.println("Send '7' to I2C connection");
-      i2c_sendData(0x07);
+      i2c_sendData(111);
+    }
+    else if (data == "shutdown") {
+      i2c_sendData(201);
+    }
+    else if (data == "reboot") {
+      i2c_sendData(202);
     }
     else {
       Serial.println("Invalid commande. Type help to list available commands.");
     }
   }
 
+  if (rpiConnected && millis() - rpiLastRequest >= RPI_ALIVE_TTL) {
+    Serial.println("Raspberry was disconnected...");
+    rpiConnected = false;
+    if (generalState == STATE_SHUTDOWN) {
+      digitalWrite(PIN_LED_R, HIGH);
+      digitalWrite(PIN_LED_Y, LOW);
+      // On attend encore un petit peu par sécurité
+      delay(SHUTDOWN_SAFETY_DELAY);
+      generalState = STATE_OFF;
+      Serial.println("New state: OFF");
+      digitalWrite(PIN_LED_R, LOW);
+      digitalWrite(PIN_LED_Y, LOW);
+      // On coupe l'alimentation
+      setPowerEnabled(false);
+    }
+  }
+
   ////// 
-  //////  GESTION RECEPTION DE l'ETAT DE LANCEMENT DU SCRIPT PYTHON SUR LE RPI
+  //////  GESTION RECEPTION DE l'ETAT DE LANCEMENT DU SCRIPT PYTHON SUR LA RPI
   //////
-  int val = digitalRead(PIN_RUNNING);
+  /*int val = digitalRead(PIN_RUNNING);
   if (val != rpiPinValue) {
     rpiCheckTime = millis() + 1000;
     rpiPinValue = val;
@@ -298,6 +343,6 @@ void loop()
         setPowerEnabled(false);
       }
     }
-  }
+  }*/
   
 }

@@ -1,14 +1,17 @@
-#!/bin/python
+#!/usr/bin/env python
 
 import smbus
 from time import sleep
 import sys
 import os
 import subprocess
+import datetime
 
 # I2C
 bus = smbus.SMBus(1)	# # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 address = 0x04		# 7 bit address
+
+print str(datetime.datetime.now())
 
 # Send to arduino
 def writeNumber(value):
@@ -32,6 +35,7 @@ try:
                 try:
                         data = bus.read_byte(address)
                 except IOError:
+			print("IO Error (arduino may be disconnected)")
                         sleep(1)
                         continue
                 # Rien a se dire
@@ -45,16 +49,22 @@ try:
 				volume = 0.0
 			else:
 				volume = 39.0 + (code / 100.0) * 60.0
-			move = ") +" if volume > oldVolume else ") -"
+			if abs(volume - oldVolume) == 0:
+				continue
+ 			move = ") +" if volume > oldVolume else ") -"
 			oldVolume = volume
 			print('Volume: ' + str(code) + '% (' + str(int(volume)) + move)
 			try:
 				subprocess.call(["amixer", "sset", "PCM", str(int(volume)) + "%"], stdout=subprocess.PIPE)
 			except BaseException as ex:
 				print('Error setting volume', ex)
-		elif code == 200:
+		elif code == 201:
 			print('Shutdown!')
-			os.system('shutdown now -h')
+			os.system('sudo shutdown now -h')
+			break
+		elif code == 202:
+			print('Reboot')
+			os.system('sudo reboot')
 			break
 		else:
 			print('Invalid code: ', code)
