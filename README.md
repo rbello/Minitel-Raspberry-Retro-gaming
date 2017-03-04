@@ -19,5 +19,5 @@ Here's what the interior looks like:
 
 This repository contains all the files allowing the creation of a similar console. This content is copyright free.
 
-[More details on conception](https://blog.evolya.fr?post/2017/DIY-Minitel-Retro-Gaming-Console-Raspberry-Arduino)
+[More details on conception](http://blog.evolya.fr/index.php?post/2017/DIY-Minitel-Retro-Gaming-Console-Raspberry-Arduino)
 
