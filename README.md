@@ -1,5 +1,5 @@
-# Retro gaming + Old French Minitel (DIY)
-### SuperSwag Project
+# Retro gaming video game console + Old French Minitel (DIY)
+### A SuperSwag Project
 
 The Minitel was a Videotex online service accessible through telephone lines, and is considered one of the world's most successful pre-World Wide Web online services. The service was rolled out in France in 1982 by the *Postes, Télégraphes et Téléphones* compagny. From its early days, users could make online purchases, make train reservations, check stock prices, search the telephone directory, have a mail box, and chat in a similar way to that now made possible by the Internet. Then, this service was retired on 30 June 2012.
 
@@ -9,7 +9,7 @@ I decided to reuse an old minitel in order to make a retro gaming console, becau
 
 Here's how it works:
 
-[![Functionnal](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Fonctionnal_schema.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Fonctionnal_schema.png)
+[![Functionnal](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Functionnal_schema.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Functionnal_schema.png)
 
 Inside, I had to make a plastic support thanks to a 3D printer to contain all the electronic components. The Arduino Nano manages the life cycle of the system. It communicates with the Raspberry using the I2C connection to send him the sound volume value (which can be changed with the minitel's original pot) and the order of shutdown. The Raspberry contains a special retro gaming linux distribution that ships all the emulators from consoles prior to the PlayStation. The display is ensured by an LCD screen specially bought for the occasion, which I had to cut out to adapt it to the original box.
 

@@ -15,12 +15,10 @@
 
 import RPi.GPIO as GPIO
 
-#gpio = [21, 26, 20, 19, 16, 13, 6, 12, 5, 25, 24, 22, 23, 27, 17, 18, 4, 15]
-
 class keypad():
     
 	# Minitel 1 RTIC keyboard
-    KEYPAD = [
+	KEYPAD = [
 		["Q", "D", "G", "J", "L", "7", "8", "9", "?"],
 		["Maj. G", "W", "B", "N", "Maj. D", "V", "C", "X", "?"],
 		["Ctrl", "S", "F", "H", "K", "M", "P", "O", "?"],
@@ -49,7 +47,6 @@ class keypad():
             GPIO.setup(self.ROW[i], GPIO.IN, pull_up_down=GPIO.PUD_UP)
          
         # Scan rows for pushed key/button
-        # A valid key press should set "rowVal"  between 0 and 3.
         rowVal = -1
         for i in range(len(self.ROW)):
             tmpRead = GPIO.input(self.ROW[i])
@@ -70,7 +67,6 @@ class keypad():
         GPIO.output(self.ROW[rowVal], GPIO.HIGH)
  
         # Scan columns for still-pushed key/button
-        # A valid key press should set "colVal"  between 0 and 2.
         colVal = -1
         for j in range(len(self.COLUMN)):
             tmpRead = GPIO.input(self.COLUMN[j])
@@ -113,4 +109,3 @@ try:
 		pressed.append(r)
 except:
         GPIO.cleanup()
-
