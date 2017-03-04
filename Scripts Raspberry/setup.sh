@@ -13,8 +13,12 @@ sudo apt-get install i2c-tools
 sudo apt-get install python-smbus
 
 ### Configuration de raspi-config
-Ajouter "i2c-dev" au fichier /etc/modules
-Activer le port I2C dans les options avancées
+# Ajouter "i2c-dev" au fichier /etc/modules
+# Activer le port I2C dans les options avancées
+
+# Ajouter dans /boot/config.txt  (pour la Rpi 3, si ce dtparam n'existe pas)
+# dtparam=i2c1=on
+# dtparam=i2c_arm=on
 
 ### Setup de la lib pour le son
 sudo apt-get install alsa-utils
