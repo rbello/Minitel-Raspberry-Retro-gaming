@@ -1,4 +1,5 @@
-# Retro gaming + French Minitel
+# Retro gaming + Old French Minitel (DIY)
+### SuperSwag Project
 
 The Minitel was a Videotex online service accessible through telephone lines, and is considered one of the world's most successful pre-World Wide Web online services. The service was rolled out in France in 1982 by the *Postes, Télégraphes et Téléphones* compagny. From its early days, users could make online purchases, make train reservations, check stock prices, search the telephone directory, have a mail box, and chat in a similar way to that now made possible by the Internet. Then, this service was retired on 30 June 2012.
 
