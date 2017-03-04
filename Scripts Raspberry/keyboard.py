@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+#    _________                          _________                        
+#   /   _____/__ ________   ___________/   _____/_  _  _______     ____  
+#   \_____  \|  |  \____ \_/ __ \_  __ \_____  \\ \/ \/ /\__  \   / ___\ 
+#   /        \  |  /  |_> >  ___/|  | \/        \\     /  / __ \_/ /_/  >
+#  /_______  /____/|   __/ \___  >__| /_______  / \/\_/  (____  /\___  / 
+#          \/      |__|        \/             \/              \//_____/  
+#
+# This file is a part of the SuperSwag projet.
+# Copyleft 2017 - evolya.fr
+#
 #@see https://wiki.labomedia.org/index.php/Renaissance_d%27un_Minitel_avec_une_Raspberry_Pi
 #@see http://crumpspot.blogspot.fr/2013/05/using-3x4-matrix-keypad-with-raspberry.html
 
@@ -11,11 +21,11 @@ class keypad():
     
 	# Minitel 1 RTIC keyboard
     KEYPAD = [
-		["Maj. G ", "W", "B", "N", "Maj. D", "V", "C", "X", "?"],
 		["Q", "D", "G", "J", "L", "7", "8", "9", "?"],
+		["Maj. G", "W", "B", "N", "Maj. D", "V", "C", "X", "?"],
 		["Ctrl", "S", "F", "H", "K", "M", "P", "O", "?"],
 		["A", "Z", "E", "R", "T", "Y", "U", "I", "?"],
-		["Esc", ",", ".", "\"", ";", "-", ":", "?", "?"],
+		["Esc", ",", ".", "'", ";", "-", ":", "?", "?"],
 		["Connexion", "Guide", "Correction", "Suite", "Envoi", "4", "5", "6", "?"],
 		["Fnct", "Sommaire", "Annulation", "Retour", "Repetition", "1", "2", "3", "?"],
 		["Up", "Down", "Left", "Right", "CR", "*", "0", "#", "Espace"],
