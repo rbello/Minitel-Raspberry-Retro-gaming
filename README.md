@@ -14,7 +14,7 @@ Inside, I had to make a plastic support thanks to a 3D printer to contain all th
 
 Here's what the interior looks like:
 
-[![Electric Routes](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronic/InternalComponents.png)
+[![Electric Routes](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)
 
 This repository contains all the files allowing the creation of a similar console. This content is copyright free.
 
