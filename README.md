@@ -9,7 +9,7 @@ I decided to reuse an old minitel in order to make a retro gaming console, becau
 
 Here's how it works:
 
-[![Functionnal](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Fonctionnal_schema.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Casing/3D_prints.png)
+[![Functionnal](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Fonctionnal_schema.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Fonctionnal_schema.png)
 
 Inside, I had to make a plastic support thanks to a 3D printer to contain all the electronic components. The Arduino Nano manages the life cycle of the system. It communicates with the Raspberry using the I2C connection to send him the sound volume value (which can be changed with the minitel's original pot) and the order of shutdown. The Raspberry contains a special retro gaming linux distribution that ships all the emulators from consoles prior to the PlayStation. The display is ensured by an LCD screen specially bought for the occasion, which I had to cut out to adapt it to the original box.
 
