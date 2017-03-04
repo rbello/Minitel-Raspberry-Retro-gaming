@@ -4,22 +4,10 @@
 #@see http://crumpspot.blogspot.fr/2013/05/using-3x4-matrix-keypad-with-raspberry.html
 
 import RPi.GPIO as GPIO
-from Adafruit_MCP230xx import Adafruit_MCP230XX
 
-mcp2 = Adafruit_MCP230XX(0x21, 19)
+#gpio = [21, 26, 20, 19, 16, 13, 6, 12, 5, 25, 24, 22, 23, 27, 17, 18, 4, 15]
 
-# Configure GPIOs
-GPIO.setmode(GPIO.BCM)
-
-gpio = [21, 26, 20, 19, 16, 13, 6, 12, 5, 25, 24, 22, 23, 27, 17, 18, 4, 15]
-
-class keypad(Adafruit_MCP230XX):
-    
-	# Constants
-    INPUT       = 0
-    OUTPUT      = 1
-    HIGH        = 1
-    LOW         = 0
+class keypad():
     
 	# Minitel 1 RTIC keyboard
     KEYPAD = [
@@ -29,89 +17,90 @@ class keypad(Adafruit_MCP230XX):
 		["A", "Z", "E", "R", "T", "Y", "U", "I", "?"],
 		["Esc", ",", ".", "\"", ";", "-", ":", "?", "?"],
 		["Connexion", "Guide", "Correction", "Suite", "Envoi", "4", "5", "6", "?"],
-		["Fnct", "Sommaire", "Annulation", "Retour", "Répétition", "1", "2", "3", "?"],
-		["↑", "↓", "←", "→", "CR", "*", "0", "#", "Espace"],
+		["Fnct", "Sommaire", "Annulation", "Retour", "Repetition", "1", "2", "3", "?"],
+		["Up", "Down", "Left", "Right", "CR", "*", "0", "#", "Espace"],
 		["", "", "", "", "", "", "", "", ""]
     ]
     
     ROW         = [21, 26, 20, 19, 16, 13, 6, 12, 5]
     COLUMN      = [25, 24, 22, 23, 27, 17, 18, 4, 15]
      
-    def __init__(self, address=0x21, num_gpios=8):
-         
-        self.mcp2 = Adafruit_MCP230XX(address, num_gpios)
+    def __init__(self):
+        GPIO.setmode(GPIO.BCM)
          
     def getKey(self):
-         
         # Set all columns as output low
         for j in range(len(self.COLUMN)):
-            self.mcp2.config(self.COLUMN[j], self.mcp2.OUTPUT)
-            self.mcp2.output(self.COLUMN[j], self.LOW)
+            GPIO.setup(self.COLUMN[j], GPIO.OUT)
+            GPIO.output(self.COLUMN[j], GPIO.LOW)
          
         # Set all rows as input
         for i in range(len(self.ROW)):
-            self.mcp2.config(self.ROW[i], self.mcp2.INPUT)
-            self.mcp2.pullup(self.ROW[i], True)
+            GPIO.setup(self.ROW[i], GPIO.IN, pull_up_down=GPIO.PUD_UP)
          
         # Scan rows for pushed key/button
-        # valid rowVal" should be between 0 and 3 when a key is pressed. Pre-setting it to -1
+        # A valid key press should set "rowVal"  between 0 and 3.
         rowVal = -1
         for i in range(len(self.ROW)):
-            tmpRead = self.mcp2.input(self.ROW[i])
+            tmpRead = GPIO.input(self.ROW[i])
             if tmpRead == 0:
                 rowVal = i
                  
-        # if rowVal is still "return" then no button was pressed and we can exit
-        if rowVal == -1:
+        # if rowVal is not 0 thru 3 then no button was pressed and we can exit
+        if rowVal < 0 or rowVal >= len(self.ROW):
             self.exit()
             return
          
         # Convert columns to input
         for j in range(len(self.COLUMN)):
-            self.mcp2.config(self.COLUMN[j], self.mcp2.INPUT)
+                GPIO.setup(self.COLUMN[j], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
          
         # Switch the i-th row found from scan to output
-        self.mcp2.config(self.ROW[rowVal], self.mcp2.OUTPUT)
-        self.mcp2.output(self.ROW[rowVal], self.HIGH)
-         
+        GPIO.setup(self.ROW[rowVal], GPIO.OUT)
+        GPIO.output(self.ROW[rowVal], GPIO.HIGH)
+ 
         # Scan columns for still-pushed key/button
+        # A valid key press should set "colVal"  between 0 and 2.
         colVal = -1
         for j in range(len(self.COLUMN)):
-            tmpRead = self.mcp2.input(self.COLUMN[j])
+            tmpRead = GPIO.input(self.COLUMN[j])
             if tmpRead == 1:
                 colVal=j
-         
-        if colVal == -1:
+                 
+        # if colVal is not 0 thru 2 then no button was pressed and we can exit
+        if colVal < 0 or colVal >= len(self.COLUMN):
             self.exit()
             return
-               
+ 
         # Return the value of the key pressed
-        self.exit()   
+        self.exit()
         return self.KEYPAD[rowVal][colVal]
-             
+
     def exit(self):
         # Reinitialize all rows and columns as input before exiting
         for i in range(len(self.ROW)):
-                self.mcp2.config(self.ROW[i], self.INPUT) 
+                GPIO.setup(self.ROW[i], GPIO.IN, pull_up_down=GPIO.PUD_UP) 
         for j in range(len(self.COLUMN)):
-                self.mcp2.config(self.COLUMN[j], self.INPUT)
+                GPIO.setup(self.COLUMN[j], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 kp = keypad()
+
+pressed = []
 
 # Main loop
 try:
         while True:
-				r = kp.getKey()
-				if r == None:
-					continue
-				print "Key pressed:", r
-                #for i in xrange(18):
-                        #print "Value of GPIO", gpio[i], "=", data[i]
-                        #current = GPIO.input(gpio[i])
-                        #if current != data[i]:
-                        #        print "Value changed for GPIO", gpio[i], "from", data[i], "to", current
-                        #        data[i] = current
-						
+		r = kp.getKey()
+		if r == None:
+			if pressed:
+				for key in pressed:
+					print "Key released:", key
+				pressed = []
+			continue
+		if r in pressed:
+			continue
+		print "Key pressed:", r
+		pressed.append(r)
 except:
         GPIO.cleanup()
 
