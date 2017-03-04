@@ -15,14 +15,14 @@
 #define TTL_STARTING 30000
 #define TTL_SHUTDOWN 30000
 #define LED_BLINK_DELAY 500
-#define SHUTDOWN_SAFETY_DELAY 5000
+#define SHUTDOWN_SAFETY_DELAY 10000
 #define RPI_ALIVE_TTL 2000
 
 // -- Configurations avancées
 
 #define SERIAL_BAUDRATE 9600    // Taux de transmission de l'arduino pour la liaison série
 #define SLAVE_ADDRESS 0x04      // Adresse I2C de l'arduino
-#define SHUTDOWN_ON_ERROR true  // Couper l'alimentation de la Rpi si le démarrage échoue
+#define SHUTDOWN_ON_ERROR false // Couper l'alimentation de la Rpi si le démarrage échoue
 
 // -- Etats possibles du système
 
@@ -280,7 +280,7 @@ void loop()
       i2c_sendData(111);
     }
     else if (data == "shutdown") {
-      i2c_sendData(201);
+      sendShutdownSignal();
     }
     else if (data == "reboot") {
       i2c_sendData(202);
