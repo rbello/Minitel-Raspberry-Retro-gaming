@@ -19,18 +19,19 @@ class keypad():
     
 	# Minitel 1 RTIC keyboard
 	KEYPAD = [
-		["Q", "D", "G", "J", "L", "7", "8", "9", "?"],
-		["Maj. G", "W", "B", "N", "Maj. D", "V", "C", "X", "?"],
-		["Ctrl", "S", "F", "H", "K", "M", "P", "O", "?"],
-		["A", "Z", "E", "R", "T", "Y", "U", "I", "?"],
-		["Esc", ",", ".", "'", ";", "-", ":", "?", "?"],
-		["Connexion", "Guide", "Correction", "Suite", "Envoi", "4", "5", "6", "?"],
-		["Fnct", "Sommaire", "Annulation", "Retour", "Repetition", "1", "2", "3", "?"],
-		["Up", "Down", "Left", "Right", "CR", "*", "0", "#", "Espace"],
-		["", "", "", "", "", "", "", "", ""]
+		["Caps L",     "W",       "B",           "N",    "Caps R", "V",     "C",     "X",     "[0x8]"],
+		["Q",          "D",       "G",           "J",    "L",      "7",     "8",     "9",     "[1x8]"],
+		["Ctrl",       "S",       "F",           "H",    "K",      "M",     "P",     "O",     "[2x8]"],
+		["A",          "Z",       "E",           "R",    "T",      "Y",     "U",     "I",     "[3x8]"],
+		["Esc",        ",",       ".",           "'",    ";",      "-",     ":",     "?",     "[4x8]"],
+		["Connection", "Guide",   "Correction", "Next",  "Send",   "4",     "5",     "6",     "[5x8]"],
+		["Fnct",       "Summary", "Cancel",     "Back",  "Repeat", "1",     "2",     "3",     "[6x8]"],
+		["Up",         "Down",    "Left",       "Right", "Enter",  "*",     "0",     "#",     "Space"],
+		["[8x0]",      "[8x1]",   "[8x2]",      "[8x3]", "[8x4]",  "[8x5]", "[8x6]", "[8x7]", "[8x8]"]
     ]
     
-    ROW         = [21, 26, 20, 19, 16, 13, 6, 12, 5]
+	# My own attached pins
+    ROW         = [26, 21, 20, 19, 16, 13, 6, 12, 5]
     COLUMN      = [25, 24, 22, 23, 27, 17, 18, 4, 15]
      
     def __init__(self):
