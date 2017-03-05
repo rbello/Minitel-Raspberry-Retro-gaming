@@ -1,3 +1,13 @@
+//    _________                          _________                        
+//   /   _____/__ ________   ___________/   _____/_  _  _______     ____  
+//   \_____  \|  |  \____ \_/ __ \_  __ \_____  \\ \/ \/ /\__  \   / ___\ 
+//   /        \  |  /  |_> >  ___/|  | \/        \\     /  / __ \_/ /_/  >
+//  /_______  /____/|   __/ \___  >__| /_______  / \/\_/  (____  /\___  / 
+//          \/      |__|        \/             \/              \//_____/  
+//
+// This file is a part of the SuperSwag projet.
+// Copyleft 2017 - evolya.fr
+
 #include <Wire.h>
 
 // -- Configuration des pins
@@ -7,7 +17,6 @@
 #define PIN_PWR_RPI 5     // Pin allumage alimentation Raspberry Pi (5V)
 #define PIN_PWR_SCREEN 6  // Pin allumage alimentation Ecran (12V)
 #define PIN_SWITCH 12     // Pin du switch On/Off
-#define PIN_RUNNING 8     // Pin permettant de récupérer l'état d'alimentation de la Rpi (déprécié)
 #define PIN_POT A0        // Pin du potentiomètre du volume sonore
 
 // -- Configuration des délais (en ms)
@@ -111,8 +120,6 @@ void setup()
   pinMode(PIN_PWR_RPI, OUTPUT);
   pinMode(PIN_PWR_SCREEN, OUTPUT);
   setPowerEnabled(false);
-
-  pinMode(PIN_RUNNING, INPUT);
 
   pinMode(PIN_POT, INPUT);
 
@@ -307,42 +314,4 @@ void loop()
     }
   }
 
-  ////// 
-  //////  GESTION RECEPTION DE l'ETAT DE LANCEMENT DU SCRIPT PYTHON SUR LA RPI
-  //////
-  /*int val = digitalRead(PIN_RUNNING);
-  if (val != rpiPinValue) {
-    rpiCheckTime = millis() + 1000;
-    rpiPinValue = val;
-  }
-  if (rpiCheckTime > 0 && rpiCheckTime < millis()) {
-    rpiCheckTime = 0;
-    bool state = rpiPinValue ? false : true;
-    if (state != rpiState) {
-      Serial.print("Raspberry state: ");
-      Serial.println(state ? "running" : "stopped");
-      rpiState = state;
-      // La raspberry est lancée
-      if (state && generalState == STATE_STARTING) {
-        generalState = STATE_STARTED;
-        Serial.println("New state: STARTED");
-        digitalWrite(PIN_LED_R, LOW);
-        digitalWrite(PIN_LED_Y, HIGH);
-      }
-      // La raspberry est éteinte
-      else if (!state && generalState == STATE_SHUTDOWN) {
-        digitalWrite(PIN_LED_R, HIGH);
-        digitalWrite(PIN_LED_Y, LOW);
-        // On attend encore un petit peu par sécurité
-        delay(SHUTDOWN_SAFETY_DELAY);
-        generalState = STATE_OFF;
-        Serial.println("New state: OFF");
-        digitalWrite(PIN_LED_R, LOW);
-        digitalWrite(PIN_LED_Y, LOW);
-        // On coupe l'alimentation
-        setPowerEnabled(false);
-      }
-    }
-  }*/
-  
 }
