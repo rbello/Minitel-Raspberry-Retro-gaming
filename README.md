@@ -9,15 +9,27 @@ I decided to reuse an old minitel in order to make a retro gaming console, becau
 
 Here's how it works:
 
-[![Functionnal](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Functionnal_schema.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Functionnal_schema.png)
+[![Functionnal schema](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Functionnal_schema.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/Functionnal_schema.png)
 
 Inside, I had to make a plastic support thanks to a 3D printer to contain all the electronic components. The Arduino Nano manages the life cycle of the system. It communicates with the Raspberry using the I2C connection to send him the sound volume value (which can be changed with the minitel's original pot) and the order of shutdown. The Raspberry contains a special retro gaming linux distribution that ships all the emulators from consoles prior to the PlayStation. The display is ensured by an LCD screen specially bought for the occasion, which I had to cut out to adapt it to the original box.
 
 Here's what the interior looks like:
 
-[![Electric Routes](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)
+[![Internal components](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)
 
 This repository contains all the files allowing the creation of a similar console. This content is copyright free.
 
 [More details on conception](http://blog.evolya.fr/index.php?post/2017/DIY-Minitel-Retro-Gaming-Console-Raspberry-Arduino)
 
+### Conception
+
+##### Eletronic schema
+[![Electronic schema](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)
+
+##### Power management
+[Arduino Sketch](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/SuperSwag3615.ino)
+
+##### Keyboard
+[Python script : I2C connection polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/polling.py)
+[Python script : Keyboard polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/keyboard.py)
+[Bash script : startup process](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/startup.sh)
