@@ -14,10 +14,9 @@ sudo apt-get install python-smbus
 
 ### Configuration de raspi-config
 # Ajouter "i2c-dev" au fichier /etc/modules
-# Activer le port I2C dans les options avancées
+# Activer le port I2C dans les options avancées de raspi-config
 
 # Ajouter dans /boot/config.txt  (pour la Rpi 3, si ce dtparam n'existe pas)
-# dtparam=i2c1=on
 # dtparam=i2c_arm=on
 
 ### Setup de la lib pour le son
@@ -36,3 +35,11 @@ hdmi_group=2
 hdmi_mode=1
 hdmi_mode=87
 hdmi_cvt 1024 600 60 6 0 0 0
+
+### Clavier
+###
+# Desactiver la fonction SERIAL dans les options avancées de raspi-config (permet d'utiliser la GPIO 15)
+wget https://bootstrap.pypa.io/get-pip.py
+python get-pip.py
+pip install python-uinput
+# Ajouter "uinput" à /etc/modules
