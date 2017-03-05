@@ -27,9 +27,9 @@ This repository contains all the files allowing the creation of a similar consol
 [![Electronic schema](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)
 
 ##### Power management
-[Arduino Sketch](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/SuperSwag3615.ino)
+- [Arduino Sketch](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/SuperSwag3615.ino)
 
 ##### Keyboard
-[Python script : I2C connection polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/polling.py)
-[Python script : Keyboard polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/keyboard.py)
-[Bash script : startup process](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/startup.sh)
+- [Python script : I2C connection polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/polling.py)
+- [Python script : Keyboard polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/keyboard.py)
+- [Bash script : startup process](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/startup.sh)
