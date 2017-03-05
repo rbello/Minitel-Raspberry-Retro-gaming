@@ -24,7 +24,7 @@ This repository contains all the files allowing the creation of a similar consol
 ### Conception
 
 ##### Eletronic schema
-[![Electronic schema](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)
+[![Electronic schema](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)
 
 ##### Power management
 - [Arduino Sketch](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/SuperSwag3615.ino)
