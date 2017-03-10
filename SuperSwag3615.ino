@@ -72,24 +72,35 @@ volatile byte e_keys;
 long rpiLastRequest = 0;
 
 // Indique si la raspberry est connectée en I2C
-bool rpiConnected = false;
+// Si cette variable est >2 on peut considérer que la RPi est connectée
+int rpiConnected = 0;
 
 // Quand le maitre (raspberry) demande quelque chose à l'esclave (arduino)
 void i2c_requests()
 {
-  //Serial.println("I2C request");
+  // On horodate la dernière requête du master
   rpiLastRequest = millis();
-  if (!rpiConnected) {
-    Serial.println("Raspberry was connected!");
-    rpiConnected = true;
-    if (generalState == STATE_STARTING) {
-      generalState = STATE_STARTED;
-      Serial.println("New state: STARTED");
-      digitalWrite(PIN_LED_R, LOW);
-      digitalWrite(PIN_LED_Y, HIGH);
+  // Si la RPi est déconnectée actuellement
+  if (rpiConnected < 3) {
+    // On incrémente le compteur d'activité
+    rpiConnected++;
+    // Si désormais le nombre de requête est suffisant pour considérer que la connexion est établie avec fiabilité
+    if (rpiConnected > 2) {
+      Serial.println("Raspberry was connected!");
+      // Si on est en état de démarrage, cela signifie que la Rpi est prête
+      if (generalState == STATE_STARTING) {
+        generalState = STATE_STARTED;
+        Serial.println("New state: STARTED");
+        digitalWrite(PIN_LED_R, LOW);
+        digitalWrite(PIN_LED_Y, HIGH);
+      }
     }
+    // Sinon on attend encore...
+    else return;
   }
+  // Aucun message à envoyer
   if (e_keys == 0) return;
+  // On a un message à envoyer
   Wire.write(e_keys);
   Serial.print("I2C sent: ");
   Serial.println((int)e_keys);
@@ -125,6 +136,7 @@ void setup()
 
   // Initialisation I2C
   Wire.begin(SLAVE_ADDRESS);
+  delay(50);
   Wire.onRequest(i2c_requests);
 
   Serial.println("New state: OFF");
@@ -236,15 +248,21 @@ void loop()
   int btn = digitalRead(PIN_SWITCH);
   // Changement d'état du bouton ON/OFF
   if (btn != switchState) {
-    if (btn == 1 && generalState == STATE_OFF) {
+    // On ajoute ici une petite vérification de l'état après 10ms, afin d'éviter des changements d'états trop rapides (bruit)
+    delay(10);
+    btn = digitalRead(PIN_SWITCH);
+    if (btn == switchState) {
+      // Si l'état est revenu à l'état initial, on ne fait rien
+    }
+    else if (btn == 1 && generalState == STATE_OFF) {
       setStarted(true);
-      switchState = btn;
     }
     else if (btn == 0 && generalState == STATE_STARTED) {
       setStarted(false);
-      switchState = btn;
     }
+    switchState = btn;
   }
+
   // Gestion des changements d'états
   if (generalState == STATE_STARTING) handleStarting();
   if (generalState == STATE_SHUTDOWN) handleShutdown();
@@ -297,9 +315,9 @@ void loop()
     }
   }
 
-  if (rpiConnected && millis() - rpiLastRequest >= RPI_ALIVE_TTL) {
+  if (rpiConnected > 2 && millis() - rpiLastRequest >= RPI_ALIVE_TTL) {
     Serial.println("Raspberry was disconnected...");
-    rpiConnected = false;
+    rpiConnected = 0;
     if (generalState == STATE_SHUTDOWN) {
       digitalWrite(PIN_LED_R, HIGH);
       digitalWrite(PIN_LED_Y, LOW);
