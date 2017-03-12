@@ -12,4 +12,6 @@
 
 sudo python /home/pi/polling.py &
 
+sudo python /home/pi/keyboard.py &
+
 omxplayer /home/pi/startup.mp3
