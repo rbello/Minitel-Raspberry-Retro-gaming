@@ -87,12 +87,12 @@ void i2c_requests()
     // Si désormais le nombre de requête est suffisant pour considérer que la connexion est établie avec fiabilité
     if (rpiConnected > 2) {
       Serial.println("Raspberry was connected!");
+      digitalWrite(PIN_LED_R, LOW);
+      digitalWrite(PIN_LED_Y, HIGH);
       // Si on est en état de démarrage, cela signifie que la Rpi est prête
       if (generalState == STATE_STARTING) {
         generalState = STATE_STARTED;
         Serial.println("New state: STARTED");
-        digitalWrite(PIN_LED_R, LOW);
-        digitalWrite(PIN_LED_Y, HIGH);
       }
     }
     // Sinon on attend encore...
@@ -181,6 +181,9 @@ void setStateStarting()
   startblink(PIN_LED_Y);
   // Allumage de l'alimentation des autres composants
   setPowerEnabled(true);
+  // On met un petit temps avant de continuer le programme, pour éviter une remontée
+  // trop rapide de l'I2C
+  delay(100);
 }
 
 void setStateShutdown() {
@@ -318,9 +321,9 @@ void loop()
   if (rpiConnected > 2 && millis() - rpiLastRequest >= RPI_ALIVE_TTL) {
     Serial.println("Raspberry was disconnected...");
     rpiConnected = 0;
+    digitalWrite(PIN_LED_R, HIGH);
+    digitalWrite(PIN_LED_Y, LOW);
     if (generalState == STATE_SHUTDOWN) {
-      digitalWrite(PIN_LED_R, HIGH);
-      digitalWrite(PIN_LED_Y, LOW);
       // On attend encore un petit peu par sécurité
       delay(SHUTDOWN_SAFETY_DELAY);
       generalState = STATE_OFF;
