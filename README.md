@@ -23,13 +23,19 @@ This repository contains all the files allowing the creation of a similar consol
 
 ### Conception
 
-##### Electronic design
+##### Power management / Electronic design
+Naturally, raspberry is not able to handle an on/off button that allows the power supply to be turned off properly once the embedded linux has shutdown. To do this, I have added an arduino that controls the power supply and manages the system life cycle.
+
 [![Electronic schema](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Electronique/Schema_bb.png)
 
-##### Power management
-- [Arduino Sketch](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/SuperSwag3615.ino)
+- [Arduino Sketch : INO file](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/SuperSwag3615.ino)
+- [Python script : I2C connection polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/polling.py)
+- [Bash script : startup process](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/startup.sh)
 
 ##### Keyboard
-- [Python script : I2C connection polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/polling.py)
+The original minitel keyboard is connected directly to the raspberry pi. It works perfectly with the following script:
 - [Python script : Keyboard polling](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/keyboard.py)
-- [Bash script : startup process](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/startup.sh)
+
+##### 3D printed components
+To integrate all the components in the case and offer USB interfaces on the front, I printed several plastic components using a 3D printer. Models are available in the Casing directory.
+[![3D prints](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/3D_prints.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/3D_prints.png)
