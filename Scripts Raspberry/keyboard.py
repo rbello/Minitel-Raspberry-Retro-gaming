@@ -19,17 +19,17 @@ import uinput
 class keypad():
 
 	# Minitel 1 RTIC keyboard (text)
-	#KEYPAD = [
-	#	["Caps L",     "W",       "B",           "N",    "Caps R", "V",     "C",     "X",     "[0x8]"],
-	#	["Q",          "D",       "G",           "J",    "L",      "7",     "8",     "9",     "[1x8]"],
-	#	["Ctrl",       "S",       "F",           "H",    "K",      "M",     "P",     "O",     "[2x8]"],
-	#	["A",          "Z",       "E",           "R",    "T",      "Y",     "U",     "I",     "[3x8]"],
-	#	["Esc",        ",",       ".",           "'",    ";",      "-",     ":",     "?",     "[4x8]"],
-	#	["Connection", "Guide",   "Correction", "Next",  "Send",   "4",     "5",     "6",     "[5x8]"],
-	#	["Fnct",       "Summary", "Cancel",     "Back",  "Repeat", "1",     "2",     "3",     "[6x8]"],
-	#	["Up",         "Down",    "Left",       "Right", "Enter",  "*",     "0",     "#",     "Space"],
-	#	["[8x0]",      "[8x1]",   "[8x2]",      "[8x3]", "[8x4]",  "[8x5]", "[8x6]", "[8x7]", "[8x8]"]
-	#]
+	KEYNAME = [
+		["Caps L",     "W",       "B",           "N",    "Caps R", "V",     "C",     "X",     "[0x8]"],
+		["Q",          "D",       "G",           "J",    "L",      "7",     "8",     "9",     "[1x8]"],
+		["Ctrl",       "S",       "F",           "H",    "K",      "M",     "P",     "O",     "[2x8]"],
+		["A",          "Z",       "E",           "R",    "T",      "Y",     "U",     "I",     "[3x8]"],
+		["Esc",        ",",       ".",           "'",    ";",      "-",     ":",     "?",     "[4x8]"],
+		["Connection", "Guide",   "Correction", "Next",  "Send",   "4",     "5",     "6",     "[5x8]"],
+		["Fnct",       "Summary", "Cancel",     "Back",  "Repeat", "1",     "2",     "3",     "[6x8]"],
+		["Up",         "Down",    "Left",       "Right", "Enter",  "*",     "0",     "#",     "Space"],
+		["[8x0]",      "[8x1]",   "[8x2]",      "[8x3]", "[8x4]",  "[8x5]", "[8x6]", "[8x7]", "[8x8]"]
+	]
 
 	ALLOW_COMBINE = ["Caps L", "Caps R", "Fnct", "Ctrl"]
 	
@@ -109,7 +109,8 @@ class keypad():
  
 		# Return the value of the key pressed
 		self.exit()
-		return self.KEYPAD[rowVal][colVal]
+		#return self.KEYPAD[rowVal][colVal]
+		return [rowVal, colVal]
 
 	def exit(self):
 		# Reinitialize all rows and columns as input before exiting
@@ -126,37 +127,39 @@ last = None
 # Main loop
 try:
 	while True:
-		r = kp.getKey()
-		if r == None:
+		k = kp.getKey()
+		if k == None:
 			if pressed is not None:
-				print "Key released:", pressed
+				print "Key released:", kp.KEYNAME[pressed[0]][pressed[1]]
 				pressed = None
 			last = None
 			continue
-		if r == last:
+		r =  kp.KEYPAD[k[0]][k[1]]
+		n = kp.KEYNAME[k[0]][k[1]]
+		if k == last:
 			continue
-		if r == pressed:
-			if pressed in kp.ALLOW_COMBINE:
-				print "Key released:", pressed, "+", last
+		if k == pressed:
+			if kp.KEYNAME[pressed[0]][pressed[1]] in kp.ALLOW_COMBINE:
+				print "Key released:", kp.KEYNAME[pressed[0]][pressed[1]], "+", kp.KEYNAME[last[0]][last[1]]
 			else:
-				print "Key released:", last
+				print "Key released:", kp.KEYNAME[last[0]][last[1]]
 			last = pressed
 			continue
 		if pressed is not None:
-			if pressed in kp.ALLOW_COMBINE:
-				print "Key pressed:", pressed, "+", r
+			if kp.KEYNAME[pressed[0]][pressed[1]] in kp.ALLOW_COMBINE:
+				print "Key pressed:", kp.KEYNAME[pressed[0]][pressed[1]], "+", n
 				# uinput
-				device.emit_combo([pressed, r])
+				kp.DEVICE.emit_combo([kp.KEYPAD[pressed[0]][pressed[1]], r])
 			else:
-				print "Key pressed:", r
+				print "Key pressed:", n
 				# uinput
 				kp.DEVICE.emit_click(r)
 		else:
-			print "Key pressed:", r
-			pressed = r
+			print "Key pressed:", n
+			pressed = k
 			# uinput
 			kp.DEVICE.emit_click(r)
-		last = r
+		last = k
 except BaseException as e:
 	print(e)
 
