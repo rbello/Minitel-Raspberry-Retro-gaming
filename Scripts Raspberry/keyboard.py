@@ -16,6 +16,7 @@
 import RPi.GPIO as GPIO
 import uinput
 import os
+import time
 
 class keypad():
 
@@ -176,14 +177,14 @@ class keypad():
 		else:
 			self.extraKeys.append(key)
 
-
 # Keyboard modifier
+runEmulationStation = True;
 def AzertyMinitelConverter(event, keyName, keyCode):
 	name = keyName[0] + " + " + keyName[1] if isinstance(keyName, list) else keyName
 	#print "Convert", name
 	if (name == "Connection"):
 		print "REBOOT NOW !"
-		os.system('sudo reboot')
+		os.system("sudo reboot")
 		return
 	return {
 		"Summary": uinput.KEY_F4,
@@ -260,6 +261,7 @@ try:
 		
 		# The state hasn't changed
 		if k == last:
+			time.sleep(0.05)
 			continue
 		
 		# The current key pressed has returned back, so a second key was release
