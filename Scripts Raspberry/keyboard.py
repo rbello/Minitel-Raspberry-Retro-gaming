@@ -15,6 +15,7 @@
 
 import RPi.GPIO as GPIO
 import uinput
+import os
 
 class keypad():
 
@@ -167,8 +168,11 @@ last = None
 # Add handlers
 def AzertyMinitelConverter(event, keyName, keyCode):
 	name = keyName[0] + " + " + keyName[1] if isinstance(keyName, list) else keyName
+	if (name == "Connection"):
+		os.system('sudo reboot')
+		return
 	return {
-		"Connection": ["F4", uinput.KEY_F4],
+		"Summary": ["F4", uinput.KEY_F4],
 		"Guide": ["Tab", uinput.KEY_TAB],
 		"A": ["Q", uinput.KEY_Q],
 		"Q": ["A", uinput.KEY_A],
@@ -179,8 +183,8 @@ def AzertyMinitelConverter(event, keyName, keyCode):
 		"'": ["4", uinput.KEY_4],
 		"-": ["6", uinput.KEY_6],
 		"Next": ["End", uinput.KEY_END],
-		"Send": ["Enter", uinput.KEY_ENTER],
-		"Caps L + ,": ["Enter", uinput.KEY_ENTER],
+		"Send": ["Enter", uinput.KEY_ENTER]
+		#"Caps L + ,": ["Enter", uinput.KEY_ENTER],
 	}.get(name, None)
 kp.addObserver("AzertyMinitelConverter")
 

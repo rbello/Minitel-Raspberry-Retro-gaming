@@ -18,8 +18,8 @@ import sys
 
 class uinputKeys():
 
-	KEY_RESERVED = (0x01, 0)
-	KEY_ESC = (0x01, 1)
+	#KEY_RESERVED = (0x01, 0)
+	#KEY_ESC = (0x01, 1)
 	KEY_1 = (0x01, 2)
 	KEY_2 = (0x01, 3)
 	KEY_3 = (0x01, 4)
@@ -629,6 +629,7 @@ for key in list:
 		sys.stdout.write('\n')
 		sys.stdout.flush()
 		col = 0
+		input("Press Enter to continue...")
 	
 	sys.stdout.write(key[0] + "=" + str(key[1]) + "=")
 	sys.stdout.flush()
