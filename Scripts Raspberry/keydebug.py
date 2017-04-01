@@ -87,8 +87,8 @@ class uinputKeys():
 	KEY_F8 = (0x01, 66)
 	KEY_F9 = (0x01, 67)
 	KEY_F10 = (0x01, 68)
-	KEY_NUMLOCK = (0x01, 69)
-	KEY_SCROLLLOCK = (0x01, 70)
+	#KEY_NUMLOCK = (0x01, 69)
+	#KEY_SCROLLLOCK = (0x01, 70)
 	KEY_KP7 = (0x01, 71)
 	KEY_KP8 = (0x01, 72)
 	KEY_KP9 = (0x01, 73)
@@ -625,17 +625,16 @@ device = uinput.Device(keys)
 col = 0
 maxCol = 10
 for key in list:
-	if ++col > maxCol:
-		sys.stdout.write('\n')
-		sys.stdout.flush()
+	col = col + 1
+	if col > maxCol:
 		col = 0
 		input("Press Enter to continue...")
 	
 	sys.stdout.write(key[0] + "=" + str(key[1]) + "=")
 	sys.stdout.flush()
-	try:
-		device.emit_click(key[1])
-	except:
-		pass
-	sys.stdout.write("\t")
+	#try:
+	#	device.emit_click(key[1])
+	#except:
+	#	pass
+	sys.stdout.write("\n")
 	sys.stdout.flush()
