@@ -164,6 +164,26 @@ kp = keypad()
 pressed = None
 last = None
 
+# Add handlers
+def AzertyMinitelConverter(event, keyName, keyCode):
+	name = keyName[0] + " + " + keyName[1] if isinstance(keyName, list) else keyName
+	return {
+		"Connection": ["F4", uinput.KEY_F4],
+		"Guide": ["Tab", uinput.KEY_TAB],
+		"A": ["Q", uinput.KEY_Q],
+		"Q": ["A", uinput.KEY_A],
+		"Z": ["W", uinput.KEY_W],
+		"W": ["Z", uinput.KEY_Z],
+		"M": [";", uinput.KEY_SEMICOLON],
+		";": [",", uinput.KEY_COMMA],
+		"'": ["4", uinput.KEY_4],
+		"-": ["6", uinput.KEY_6],
+		"Next": ["End", uinput.KEY_END],
+		"Send": ["Enter", uinput.KEY_ENTER],
+		"Caps L + ,": ["Enter", uinput.KEY_ENTER],
+	}.get(name, None)
+kp.addObserver("AzertyMinitelConverter")
+
 # Main loop
 try:
 	while True:
