@@ -1,4 +1,7 @@
 # Retro gaming video game console + Old French Minitel (DIY)
+
+[![External components](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/ExternalComponents.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/ExternalComponents.jpg)
+
 ### A SuperSwag Project
 
 The Minitel was a Videotex online service accessible through telephone lines, and is considered one of the world's most successful pre-World Wide Web online services. The service was rolled out in France in 1982 by the *Postes, Télégraphes et Téléphones* compagny. From its early days, users could make online purchases, make train reservations, check stock prices, search the telephone directory, have a mail box, and chat in a similar way to that now made possible by the Internet. Then, this service was retired on 30 June 2012.
@@ -14,8 +17,6 @@ Here's how it works:
 Inside, I had to make a plastic support thanks to a 3D printer to contain all the electronic components. The Arduino Nano manages the life cycle of the system. It communicates with the Raspberry using the I2C connection to send him the sound volume value (which can be changed with the minitel's original pot) and the order of shutdown. The Raspberry contains a special retro gaming linux distribution that ships all the emulators from consoles prior to the PlayStation. The display is ensured by an LCD screen specially bought for the occasion, which I had to cut out to adapt it to the original box.
 
 Here's what it looks like:
-
-[![External components](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/ExternalComponents.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/ExternalComponents.jpg)
 
 [![Internal components](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/InternalComponents.jpg)
 
