@@ -47,11 +47,14 @@ class keypad():
 	]
 
 	# My own attached pins
-	ROW         = [26, 21, 20, 19, 16, 13, 6, 12, 5]
+	ROW         = [26, 21, 20, 19, 16, 13,  6, 12, 5]
 	COLUMN      = [25, 24, 22, 23, 27, 17, 18, 4, 14]
 
 	# Virtual keyboard device for uinput
 	DEVICE      = None
+
+	# Observers
+	observers = []
 
 	def __init__(self):
 		# Configure GPIO designation model
@@ -119,6 +122,43 @@ class keypad():
 		for j in range(len(self.COLUMN)):
 			GPIO.setup(self.COLUMN[j], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+	def addObserver(self, functionName):
+		func = globals()[str(functionName)]
+		if func not in self.observers:
+			self.observers.append(func)
+
+	def notifyObservers(self, event, keyName, keyCode):
+		result = None
+		for obs in self.observers:
+			r = obs(event, keyName, keyCode)
+			if r is not None and result is None:
+				result = r
+		return result
+			
+	def onKeyPress(self, keyName, keyCode):
+		result = self.notifyObservers("keyPress", keyName, keyCode)
+		replaced = False
+		if result is not None:
+			keyName = result[0]
+			keyCode = result[1]
+			replaced = True
+		print "Key pressed:", keyName, "(replaced)" if replaced else "(user intent)"
+		self.DEVICE.emit_click(keyCode)
+
+	def onKeyComboPress(self, keyName1, keyCode1, keyName2, keyCode2):
+		result = self.notifyObservers("keyComboPress", [keyName1, keyName2], [keyCode1, keyCode2])
+		#TODO Implements replacement
+		replaced = False
+		print "Keys pressed:", keyName1, "+", keyName2, "(replaced)" if replaced else "(user intent)"
+		kp.DEVICE.emit_combo([keyCode1, keyCode2])
+	
+	def onKeyRelease(self, keyName, keyCode):
+		print "Key released:", keyName
+		
+	def onKeyComboRelease(self, keyName1, keyCode1, keyName2, keyCode2):
+		print "Keys released:", keyName1, "+", keyName2
+
+
 kp = keypad()
 
 pressed = None
@@ -127,38 +167,51 @@ last = None
 # Main loop
 try:
 	while True:
-		k = kp.getKey()
+		k = kp.getKey() # key coordinates
+		
+		# No key are pressed
 		if k == None:
+			# If a key was pressed before, release it
 			if pressed is not None:
-				print "Key released:", kp.KEYNAME[pressed[0]][pressed[1]]
+				kp.onKeyRelease(kp.KEYNAME[pressed[0]][pressed[1]], kp.KEYPAD[pressed[0]][pressed[1]])
 				pressed = None
 			last = None
 			continue
-		r =  kp.KEYPAD[k[0]][k[1]]
-		n = kp.KEYNAME[k[0]][k[1]]
+		
+		# The state hasn't changed
 		if k == last:
 			continue
+		
+		# The current key pressed has returned back, so a second key was release
 		if k == pressed:
+			# Allowed key combinaison
 			if kp.KEYNAME[pressed[0]][pressed[1]] in kp.ALLOW_COMBINE:
-				print "Key released:", kp.KEYNAME[pressed[0]][pressed[1]], "+", kp.KEYNAME[last[0]][last[1]]
+				kp.onKeyComboRelease(kp.KEYNAME[pressed[0]][pressed[1]], kp.KEYPAD[pressed[0]][pressed[1]], kp.KEYNAME[last[0]][last[1]], kp.KEYPAD[last[0]][last[1]])
+			# Just two keys separately
 			else:
-				print "Key released:", kp.KEYNAME[last[0]][last[1]]
+				kp.onKeyRelease(kp.KEYNAME[last[0]][last[1]], kp.KEYPAD[last[0]][last[1]])
 			last = pressed
 			continue
+		
+		# Key name
+		n = kp.KEYNAME[k[0]][k[1]]
+
+
+		# uinput key
+		r =  kp.KEYPAD[k[0]][k[1]]
+		# A second key was pressed
 		if pressed is not None:
+			# Allowed key combinaison
 			if kp.KEYNAME[pressed[0]][pressed[1]] in kp.ALLOW_COMBINE:
-				print "Key pressed:", kp.KEYNAME[pressed[0]][pressed[1]], "+", n
-				# uinput
-				kp.DEVICE.emit_combo([kp.KEYPAD[pressed[0]][pressed[1]], r])
+				kp.onKeyComboPress(kp.KEYNAME[pressed[0]][pressed[1]], kp.KEYPAD[pressed[0]][pressed[1]], n, r)
+			# Just two keys separately
 			else:
-				print "Key pressed:", n
-				# uinput
-				kp.DEVICE.emit_click(r)
+				kp.onKeyPress(n, r)
+		# A first key was pressed
 		else:
-			print "Key pressed:", n
+			kp.onKeyPress(n, r)
 			pressed = k
-			# uinput
-			kp.DEVICE.emit_click(r)
+			
 		last = k
 except BaseException as e:
 	print(e)
