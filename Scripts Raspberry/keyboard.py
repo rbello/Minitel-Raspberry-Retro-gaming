@@ -40,7 +40,7 @@ class keypad():
 		[uinput.KEY_Q,          uinput.KEY_D,      uinput.KEY_G,          uinput.KEY_J,           uinput.KEY_L,           uinput.KEY_7,           uinput.KEY_8,      uinput.KEY_9,         None],
 		[uinput.KEY_LEFTCTRL,   uinput.KEY_S,      uinput.KEY_F,          uinput.KEY_H,           uinput.KEY_K,           uinput.KEY_M,           uinput.KEY_P,      uinput.KEY_O,         None],
 		[uinput.KEY_A,          uinput.KEY_Z,      uinput.KEY_E,          uinput.KEY_R,           uinput.KEY_T,           uinput.KEY_Y,           uinput.KEY_U,      uinput.KEY_I,         None],
-		[uinput.KEY_ESC,        uinput.KEY_COMMA,  uinput.KEY_DOT,        uinput.KEY_APOSTROPHE,  uinput.KEY_SEMICOLON,   uinput.KEY_MINUS,       None,  			 uinput.KEY_QUESTION,  None], # Todo deux points
+		[uinput.KEY_ESC,        uinput.KEY_COMMA,  uinput.KEY_DOT,        uinput.KEY_APOSTROPHE,  uinput.KEY_SEMICOLON,   uinput.KEY_MINUS,       None,              uinput.KEY_QUESTION,  None], # Todo deux-points
 		[uinput.KEY_CONNECT,    uinput.KEY_HELP,   uinput.KEY_BACKSPACE,  uinput.KEY_NEXT,        uinput.KEY_SEND,        uinput.KEY_4,           uinput.KEY_5,      uinput.KEY_6,         None],
 		[uinput.KEY_FN,         uinput.KEY_LIST,   uinput.KEY_CANCEL,     uinput.KEY_BACK,        uinput.KEY_REDO,        uinput.KEY_1,           uinput.KEY_2,      uinput.KEY_3,         None],
 		[uinput.KEY_UP,         uinput.KEY_DOWN,   uinput.KEY_LEFT,       uinput.KEY_RIGHT,       uinput.KEY_ENTER,       uinput.KEY_KPASTERISK,  uinput.KEY_0,      None,                 uinput.KEY_SPACE], # Todo diese
@@ -54,13 +54,10 @@ class keypad():
 	# Virtual keyboard device for uinput
 	DEVICE      = None
 
-	# Extra keys
-	extraKeys = []
-	
 	# Observers
 	observers = []
 
-	def start(self):
+	def __init__(self):
 		# Configure GPIO designation model
 		GPIO.setmode(GPIO.BCM)
 		# Map input keys
@@ -69,8 +66,7 @@ class keypad():
 			for key in row:
 				if key is not None:
 					map.append(key)
-		for key in self.extraKeys:
-			map.append(key)
+		print map
 		self.DEVICE = uinput.Device(map)
 
 	def getKey(self):
@@ -141,94 +137,59 @@ class keypad():
 		return result
 			
 	def onKeyPress(self, keyName, keyCode):
-		replace = self.notifyObservers("keyPress", keyName, keyCode)
-		if replace is not None:
-			print "Replace key press:", keyName, keyCode, "by", replace
-			if isinstance(replace, list):
-				self.DEVICE.emit_combo(replace)
-			else:
-				self.DEVICE.emit_click(replace)
-		else:
-			print "Key press:", keyName
-			self.DEVICE.emit_click(keyCode)
+		result = self.notifyObservers("keyPress", keyName, keyCode)
+		replaced = False
+		if result is not None:
+			keyName = result[0]
+			keyCode = result[1]
+			replaced = True
+		print "Key pressed:", keyName, "(replaced)" if replaced else "(user intent)"
+		self.DEVICE.emit_click(keyCode)
 
 	def onKeyComboPress(self, keyName1, keyCode1, keyName2, keyCode2):
-		replace = self.notifyObservers("keyComboPress", [keyName1, keyName2], [keyCode1, keyCode2])
-		if replace is not None:
-			print "Replace keys press:", keyName1, "+", keyName2, [keyCode1, keyCode2], "by", replace
-			if isinstance(replace, list):
-				kp.DEVICE.emit_combo(replace)
-			else:
-				self.DEVICE.emit_click(replace)
-		else:
-			print "Keys press:", keyName1, "+", keyName2
-			kp.DEVICE.emit_combo([keyCode1, keyCode2])
+		result = self.notifyObservers("keyComboPress", [keyName1, keyName2], [keyCode1, keyCode2])
+		#TODO Implements replacement
+		replaced = False
+		print "Keys pressed:", keyName1, "+", keyName2, "(replaced)" if replaced else "(user intent)"
+		kp.DEVICE.emit_combo([keyCode1, keyCode2])
 	
 	def onKeyRelease(self, keyName, keyCode):
-		print "Key release:", keyName
+		print "Key released:", keyName
 		
 	def onKeyComboRelease(self, keyName1, keyCode1, keyName2, keyCode2):
-		print "Keys release:", keyName1, "+", keyName2
-		
-	def addExtraKey(self, key):
-		self.extraKeys.append(key)
+		print "Keys released:", keyName1, "+", keyName2
 
 
-# Keyboard modifier
+kp = keypad()
+
+pressed = None
+last = None
+
+# Add handlers
 def AzertyMinitelConverter(event, keyName, keyCode):
 	name = keyName[0] + " + " + keyName[1] if isinstance(keyName, list) else keyName
-	#print "Convert", name
 	if (name == "Connection"):
 		os.system('sudo reboot')
 		return
 	return {
-		"Summary": uinput.KEY_F4,
-		"Guide": uinput.KEY_TAB,
-		
-		# Fix inverted chars
-		"A": uinput.KEY_Q,
-		"Q": uinput.KEY_A,
-		"Z": uinput.KEY_W,
-		"W": uinput.KEY_Z,
-		"M": uinput.KEY_SEMICOLON,
-		
-		# Fix specials chars
-		",": uinput.KEY_M,
-		".": [uinput.KEY_LEFTSHIFT, uinput.KEY_COMMA],
-		"'": uinput.KEY_4,
-		";": uinput.KEY_COMMA,
-		"-": uinput.KEY_6,
-		":": uinput.KEY_DOT,
-		"?": [uinput.KEY_LEFTSHIFT, uinput.KEY_M],
-		
-		# Fix special chars combo
-		"Caps L + -": uinput.KEY_EQUAL,
-		"Caps L + :": uinput.KEY_KPASTERISK,
-		"Caps L + ?": [uinput.KEY_LEFTSHIFT, uinput.KEY_DOT],
-		
-		
-		"Next": uinput.KEY_END,
-		"Send": uinput.KEY_ENTER
-		
+		"Summary": ["F4", uinput.KEY_F4],
+		"Guide": ["Tab", uinput.KEY_TAB],
+		"A": ["Q", uinput.KEY_Q],
+		"Q": ["A", uinput.KEY_A],
+		"Z": ["W", uinput.KEY_W],
+		"W": ["Z", uinput.KEY_Z],
+		"M": [";", uinput.KEY_SEMICOLON],
+		";": [",", uinput.KEY_COMMA],
+		"'": ["4", uinput.KEY_4],
+		"-": ["6", uinput.KEY_6],
+		"Next": ["End", uinput.KEY_END],
+		"Send": ["Enter", uinput.KEY_ENTER]
+		#"Caps L + ,": ["Enter", uinput.KEY_ENTER],
 	}.get(name, None)
-	
+kp.addObserver("AzertyMinitelConverter")
+
 # Main loop
 try:
-
-	kp = keypad()
-
-	pressed = None
-	last = None
-
-	kp.addObserver("AzertyMinitelConverter")
-	kp.addExtraKey(uinput.KEY_F4)
-	kp.addExtraKey(uinput.KEY_TAB)
-	kp.addExtraKey(uinput.KEY_DOT)
-	kp.addExtraKey(uinput.KEY_EQUAL)
-	kp.start()
-	
-	print "Keyboard polling is started..."
-
 	while True:
 		k = kp.getKey() # key coordinates
 		
@@ -258,8 +219,10 @@ try:
 		
 		# Key name
 		n = kp.KEYNAME[k[0]][k[1]]
+
+
 		# uinput key
-		r = kp.KEYPAD[k[0]][k[1]]
+		r =  kp.KEYPAD[k[0]][k[1]]
 		# A second key was pressed
 		if pressed is not None:
 			# Allowed key combinaison
@@ -274,7 +237,6 @@ try:
 			pressed = k
 			
 		last = k
-		
 except BaseException as e:
 	print(e)
 
