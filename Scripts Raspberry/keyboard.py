@@ -7,7 +7,7 @@
 #  /_______  /____/|   __/ \___  >__| /_______  / \/\_/  (____  /\___  / 
 #          \/      |__|        \/             \/              \//_____/  
 #
-# This file is a part of the SuperSwag projet.
+# This file is a part of the SuperSwag projet
 # Copyleft 2017 - evolya.fr
 #
 #@see https://wiki.labomedia.org/index.php/Renaissance_d%27un_Minitel_avec_une_Raspberry_Pi
