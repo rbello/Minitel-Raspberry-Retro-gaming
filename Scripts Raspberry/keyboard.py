@@ -188,6 +188,9 @@ def AzertyMinitelConverter(event, keyName, keyCode):
 	return {
 		"Summary": uinput.KEY_F4,
 		"Guide": uinput.KEY_TAB,
+		"Cancel": [uinput.KEY_LEFTCTRL, uinput.KEY_C],
+		"Next": uinput.KEY_TAB,
+		"Send": uinput.KEY_ENTER,
 		
 		# Fix inverted chars
 		"A": uinput.KEY_Q,
@@ -225,8 +228,7 @@ def AzertyMinitelConverter(event, keyName, keyCode):
 		# Fix numbers special chars
 		"Caps L + 1": uinput.KEY_SLASH,
 		
-		"Next": uinput.KEY_END,
-		"Send": uinput.KEY_ENTER
+		
 		
 	}.get(name, None)
 	
@@ -239,7 +241,7 @@ try:
 	last = None
 
 	kp.addObserver("AzertyMinitelConverter")
-	kp.addExtraKey([uinput.KEY_F4, uinput.KEY_TAB, uinput.KEY_DOT, uinput.KEY_EQUAL, uinput.KEY_SLASH, uinput.KEY_LEFTBRACE, uinput.KEY_RIGHTBRACE])
+	kp.addExtraKey([uinput.KEY_F4, uinput.KEY_TAB, uinput.KEY_DOT, uinput.KEY_EQUAL, uinput.KEY_SLASH, uinput.KEY_END, uinput.KEY_LEFTBRACE, uinput.KEY_RIGHTBRACE])
 	kp.start()
 	
 	print "Keyboard polling is started..."
