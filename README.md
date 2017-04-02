@@ -39,11 +39,24 @@ The original minitel keyboard is connected directly to the raspberry pi. It work
 To integrate all the components in the case and offer USB interfaces on the front, I printed several plastic components using a 3D printer. Models are available in the Casing directory.
 [![3D prints](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/3D_prints.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/3D_prints.png)
 
-#### Materials :
+#### Materials
 
 - The Raspberry Pi 3 (Model B) as main engine
 - Arduino Nano (from SODIAL)
 - [10.1 inch LCD touch screen](https://www.amazon.fr/gp/product/B01E8O5B20/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1)
 - A simple USB audio speaker with Jack connector
 
-This repository contains all the files allowing the creation of a similar console. This content is copyright free.
+#### Software
+
+[![RetropieLogo](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/RetropieLogo.jpg)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/RetropieLogo.jpg)
+
+On the raspberry pi:
+- Installed Operating System : [RetroPie](https://retropie.org.uk/)
+- Plus some linux packages: i2c-tools and python-smbus, alsa-utils (for sounds), python-uinput (for keyboard)
+- I also replaced the [/boot/config.txt](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/config.txt) to adapt screen resolution
+- See [setup document](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/setup.txt) for more details
+
+I also used:
+- Scraper : [Universal XML Scraper](https://github.com/Universal-Rom-Tools/Universal-XML-Scraper/releases)
+
+*This repository contains all the files allowing the creation of a similar console. This content is copyright free.*
