@@ -20,6 +20,7 @@ scan_dir = "./RetroPie/roms/"
 scan_ext = [".srm", ".state", ".dat", ".nv", ".hi", ".hs", ".cfg", ".eep", ".fs"]
 ws_api_key = "base32secret3232"
 ws_url = "https://static.evolya.fr/cloud-superswag/"
+console_name = "Console Minitel"
 
 ### END OF CONFIGURATION
 
@@ -42,7 +43,7 @@ print "  One-time password:", otp
 
 # Ask for remote cache
 print "  Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(ws_url)), "..."
-r = requests.post("http://bugs.python.org", data={"action": "GetCache", "key": otp})
+r = requests.post(ws_url, data={"action": "GetCache", "key": otp, "console": console_name})
 if r.status_code != 200:
 	print "Error: unable to get remote cache (" + r.status_code + ")"
 	sys.exit(0)
