@@ -187,9 +187,12 @@ def AzertyMinitelConverter(event, keyName, keyCode):
 		os.system("sudo reboot")
 		return
 	return {
+	
+		# Replace functions keys
 		"Summary": uinput.KEY_F4,
 		"Guide": uinput.KEY_TAB,
-		"Cancel": [uinput.KEY_LEFTCTRL, uinput.KEY_C],
+		"Cancel": [uinput.KEY_LEFTCTRL, uinput.KEY_X],
+		"Back": [uinput.KEY_LEFTCTRL, uinput.KEY_C],
 		"Next": uinput.KEY_TAB,
 		"Send": uinput.KEY_ENTER,
 		
@@ -228,8 +231,6 @@ def AzertyMinitelConverter(event, keyName, keyCode):
 		
 		# Fix numbers special chars
 		"Caps L + 1": uinput.KEY_SLASH,
-		
-		
 		
 	}.get(name, None)
 	
