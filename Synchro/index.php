@@ -7,16 +7,15 @@ date_default_timezone_set('Europe/Paris');
 require_once 'GoogleAuthenticator.php';
 
 $ga = new PHPGangsta_GoogleAuthenticator();
-$secret = $ga->createSecret();
-echo "Secret is: ".$secret."\n\n";
 
-$qrCodeUrl = $ga->getQRCodeGoogleUrl('Blog', $secret);
-echo "Google Charts URL for the QR-Code: ".$qrCodeUrl."\n\n";
+//$secret = $ga->createSecret();
+$secret = "LSX2I5BLGSXA4T77";
 
 $oneCode = $ga->getCode($secret);
-echo "Checking Code '$oneCode' and Secret '$secret':\n";
 
-$checkResult = $ga->verifyCode($secret, $oneCode, 2);    // 2 = 2*30sec clock tolerance
+echo $oneCode . "\r\n<br>";
+
+$checkResult = $ga->verifyCode($secret, $oneCode, 1); // n*30sec clock tolerance
 if ($checkResult) {
     echo 'OK';
 } else {
