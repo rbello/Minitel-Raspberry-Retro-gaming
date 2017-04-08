@@ -14,13 +14,16 @@
 # https://github.com/pyotp/pyotp
 # Install : pip install pyotp
 
+# Require Requests API
+# Install : pip install requests
+
 ### START OF CONFIGURATION
 
 scan_dir = "./RetroPie/roms/"
 scan_ext = [".srm", ".state", ".dat", ".nv", ".hi", ".hs", ".cfg", ".eep", ".fs"]
-ws_api_key = "base32secret3232"
+ws_api_key = "LSX2I5BLGSXA4T77"
 ws_url = "https://static.evolya.fr/cloud-superswag/"
-console_name = "Console Minitel"
+console_name = "Minitel"
 
 ### END OF CONFIGURATION
 
@@ -38,12 +41,10 @@ cache = {}
 
 # Generate OTP
 totp = pyotp.TOTP(ws_api_key)
-otp = str(totp.now())
-print "  One-time password:", otp
 
 # Ask for remote cache
 print "  Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(ws_url)), "..."
-r = requests.post(ws_url, data={"action": "GetCache", "key": otp, "console": console_name})
+r = requests.get(ws_url)
 if r.status_code != 200:
 	print "Error: unable to get remote cache (" + r.status_code + ")"
 	sys.exit(0)
@@ -89,9 +90,14 @@ for root, directories, filenames in os.walk(scan_dir):
 		# Check if file has changed
 		if (md5 not in cache) or (mtime > cache[md5][0]):
 			# Print a log
-			print " ", path, md5, time.ctime(mtime)
+			print " ", file, md5, time.ctime(mtime)
+			otp = str(totp.now())
 			# Send files:
 			# http://stackoverflow.com/questions/68477/send-file-using-post-from-a-python-script
+			with open(path, 'rb') as fd:
+				r = requests.post(ws_url, files={file: fd}, data={'key': otp, 'console': console_name, 'hash': md5, 'mtime': mtime})
+				print r.status_code
+				print r.content
 			count_changed += 1
 		else:
 			count_unchanged += 1
