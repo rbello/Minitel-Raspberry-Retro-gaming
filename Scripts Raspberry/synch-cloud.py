@@ -83,6 +83,7 @@ changed = False
 count_files = 0
 count_changed = 0
 count_unchanged = 0
+count_failures = 0
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
@@ -128,11 +129,12 @@ for root, directories, filenames in os.walk(scan_dir):
 				r = requests.post(ws_url, files={file: fd}, data={'key': otp, 'console': console_name, 'hash': md5, 'mtime': mtime, 'plateforme': plateforme})
 				if r.status_code != 200 and r.status_code != 201:
 					print bcolors.FAIL + "  [FAILURE]", str(r.status_code), r.content, "=>", md5 + bcolors.ENDC
+					count_failures += 1
 				else:
 					print "  [SUCCESS]", md5, time.ctime(mtime), str(r.status_code), r.content
-			count_changed += 1
+					count_changed += 1
 		else:
 			count_unchanged += 1
 
 print "FINISHED !"
-print "Updated:", count_changed, "Total:", (count_changed + count_unchanged)
+print "Updated:", count_changed, "Total:", (count_changed + count_unchanged), "Failures:", count_failures
