@@ -19,6 +19,9 @@ $otp_tolerance = 2;
 // Timezone
 $current_timezone = 'Europe/Paris';
 
+// Error level : 0 or E_ALL
+error_reporting(E_ALL);
+
 ############ END OF CONFIGURATION ############
 
 if (!function_exists('http_response_code')) {
@@ -86,14 +89,18 @@ date_default_timezone_set($current_timezone);
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 	if (file_exists('./.cache.php')) {
+		// Load cache
 		$cache = include './.cache.php';
-		echo filemtime('./.cache.php');
+		// Header
+		echo filemtime('./.cache.php') . ' ' . date_default_timezone_get();
+		// Contents
 		foreach ($cache as $game => $data) {
 			$update = array_pop($data['updates']);
-			echo "\n{$update['hash']} {$update['mtime']} {$data['emulator']} {$game}";
+			$length = filesize("./saves/{$update['hash']}");
+			echo "\n{$update['hash']} {$update['mtime']} {$data['emulator']} {$length} {$game}";
 		}
 	}
-	else echo time();
+	else echo '0 ' . date_default_timezone_get();
 	exit();
 }
 
@@ -110,9 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		error(400, 'Missing request parameter: file modification time (mtime)');
 	if (!array_key_exists('plateforme', $_POST))
 		error(400, 'Missing request parameter: emulator name (plateforme)');
-
-	// Error level
-	error_reporting(E_ALL);
 
 	// Import OTP library
 	require_once 'GoogleAuthenticator.php';
@@ -141,6 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	
 	// Fix hash
 	$_POST['hash'] = preg_replace("/[^A-Za-z0-9 ]/", '', $_POST['hash']);
+
+	// TODO: test if hash hasn't changed
 	
 	// Create store directory
 	if (!is_dir('./saves/')) mkdir('./saves/');

@@ -17,6 +17,8 @@
 # Require Requests API
 # Install : pip install requests
 
+# Don't forget to setup time zone using raspi-config tool
+
 ws_api_key = "LSX2I5BLGSXA4T77"
 ws_url = "https://static.evolya.fr/cloud-superswag/"
 console_name = "Minitel"
@@ -66,11 +68,12 @@ content = [l.strip() for l in r.content.split("\n")]
 updateTime = ""
 for line in content:
 	if updateTime == "":
-		updateTime = line
+		updateTime = line.split(" ", 2)
+		print "  Cache was updated on: ", updateTime[0], "(" + updateTime[1] + ")"
 		continue
-	row = line.split(" ", 3)
-	cache[row[0]] = [int(row[1]), row[2]]
-print "  Cache was updated on: ", updateTime
+	row = line.split(" ", 5)
+	# Format: cache[string md5] = [int mtime, string plateforme, int filesize, string filename]
+	cache[row[0]] = [int(row[1]), row[2], int(row[3]), row[4]]
 print "  Found objects in cache: ", len(cache)
 print "  Success!"
 
@@ -106,13 +109,22 @@ for root, directories, filenames in os.walk(scan_dir):
 		md5 = hashlib.md5(path).hexdigest()
 		# File last modification time
 		mtime = os.path.getmtime(path)
+		# Plateforme name
+		plateforme = os.path.basename(os.path.dirname(path))
+		# Change conditions
+		change = None
+		if md5 not in cache: change = "Hash"
+		elif mtime > cache[md5][0]: change = "Time"
+		elif os.path.getsize(path) != cache[md5][2]: change = "Size"
 		# Check if file has changed
-		if (md5 not in cache) or (mtime > cache[md5][0]):
+		if change is not None:
 			# Print a log
+			print "   Upload: ", plateforme + "/" + file, "(" + sizeof_fmt(os.path.getsize(path)) + ", " + change + " change)"
+			# Generate one time password
 			otp = str(totp.now())
-			plateforme = os.path.basename(os.path.dirname(path))
+			# Begin upload
 			with open(path, 'rb') as fd:
-				print "   Upload: ", file, "(" + sizeof_fmt(os.path.getsize(path)) + ") ..."
+				# Post request
 				r = requests.post(ws_url, files={file: fd}, data={'key': otp, 'console': console_name, 'hash': md5, 'mtime': mtime, 'plateforme': plateforme})
 				if r.status_code != 200 and r.status_code != 201:
 					print bcolors.FAIL + "  [FAILURE]", str(r.status_code), r.content, "=>", md5 + bcolors.ENDC
@@ -121,3 +133,6 @@ for root, directories, filenames in os.walk(scan_dir):
 			count_changed += 1
 		else:
 			count_unchanged += 1
+
+print "FINISHED !"
+print "Updated:", count_changed, "Total:", (count_changed + count_unchanged)
