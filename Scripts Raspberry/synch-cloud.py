@@ -24,7 +24,7 @@ ws_url = "https://static.evolya.fr/cloud-superswag/"
 console_name = "Minitel"
 
 scan_dir = "./RetroPie/roms/"
-scan_ext = [".state", ".state1", ".state2", ".state3", ".state4", ".state5", ".state6", ".state7", ".state8", ".state9", ".state0", ".dat", ".nv", ".hi", ".hs", ".cfg", ".eep", ".fs", ".sfc"]
+scan_ext = [".state", ".state1", ".state2", ".state3", ".state4", ".state5", ".state6", ".state7", ".state8", ".state9", ".state0", ".dat", ".nv", ".hi", ".hs", ".cfg", ".eep", ".fs", ".sfc", ".st0", ".sra", ".fs"]
 
 ############ END OF CONFIGURATION ############
 
@@ -114,7 +114,7 @@ for root, directories, filenames in os.walk(scan_dir):
 		# Change conditions
 		change = None
 		if md5 not in cache: change = "Hash"
-		elif mtime > cache[md5][0]: change = "Time"
+		#elif mtime > cache[md5][0]: change = "Time"
 		elif os.path.getsize(path) != cache[md5][2]: change = "Size"
 		# Check if file has changed
 		if change is not None:
