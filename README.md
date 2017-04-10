@@ -63,7 +63,7 @@ I also used:
 
 The console automatically synchronizes game saves backups with an HTTP server. A raspberry-side python script and a server-side PHP script ensure the synchronization of files periodically, thanks to a CRON task.
 
-[![SynchScript](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/UpdateScriptLog.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/UpdateScriptLog.png)
+[![SynchScript](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/UpdateScriptLog.gif)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/UpdateScriptLog.gif)
 
 [Python](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/synch-cloud.py) and [PHP](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Synchro/index.php) scripts uses an OTP authentication using algorithms specified in RFC 6238 and RFC 4226 (also used by Google Authenticator).
 
