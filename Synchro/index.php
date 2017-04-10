@@ -92,15 +92,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 		// Load cache
 		$cache = include './.cache.php';
 		// Header
-		echo filemtime('./.cache.php') . ' ' . date_default_timezone_get();
+		echo time() . ' ' . filemtime('./.cache.php') . ' ' . date_default_timezone_get();
 		// Contents
-		foreach ($cache as $game => $data) {
+		foreach ($cache as $id => $data) {
 			$update = array_pop($data['updates']);
 			$length = filesize("./saves/{$update['hash']}");
-			echo "\n{$update['hash']} {$update['mtime']} {$data['emulator']} {$length} {$game}";
+			echo "\n{$id}\t{$update['hash']}\t{$update['mtime']}\t{$data['emulator']}\t{$length}\t{$update['from']}\t{$data['game']}";
 		}
 	}
-	else echo '0 ' . date_default_timezone_get();
+	else echo time() . ' 0 ' . date_default_timezone_get();
 	exit();
 }
 
@@ -117,6 +117,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		error(400, 'Missing request parameter: file modification time (mtime)');
 	if (!array_key_exists('plateforme', $_POST))
 		error(400, 'Missing request parameter: emulator name (plateforme)');
+	if (!array_key_exists('gameid', $_POST))
+		error(400, 'Missing request parameter: game hash identifier (gameid)');
+	if (!array_key_exists('gamename', $_POST))
+		error(400, 'Missing request parameter: game name (gamename)');
 
 	// Import OTP library
 	require_once 'GoogleAuthenticator.php';
@@ -159,8 +163,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 	// Create save entry
 	$update = true;
-	if (!array_key_exists($game['name'], $cache)) {
-		$cache[$game['name']] = array(
+	if (!array_key_exists($_POST['gameid'], $cache)) {
+		$cache[$_POST['gameid']] = array(
+			'game' => $_POST['gamename'],
 			'emulator' => $_POST['plateforme'],
 			'updates' => array()
 		);
@@ -168,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	}
 	
 	// Add update entry
-	$cache[$game['name']]['updates'][] = array(
+	$cache[$_POST['gameid']]['updates'][] = array(
 			'from'  => $_POST['console'],
 			'hash'  => $_POST['hash'],
 			'mtime' => intval($_POST['mtime'])

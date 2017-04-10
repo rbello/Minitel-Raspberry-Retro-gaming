@@ -17,6 +17,9 @@
 # Require Requests API
 # Install : pip install requests
 
+# Require TZLOCAL time API
+# Install : pip install tzlocal
+
 # Don't forget to setup time zone using raspi-config tool
 
 ws_api_key = "LSX2I5BLGSXA4T77"
@@ -35,6 +38,7 @@ import pyotp
 import requests
 import urllib2
 from urlparse import urlparse
+import tzlocal
 
 class bcolors:
     HEADER = '\033[95m'
@@ -53,7 +57,7 @@ cache = {}
 totp = pyotp.TOTP(ws_api_key)
 
 # Ask for remote cache
-print "  Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(ws_url)), "..."
+print "Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(ws_url)), "..."
 try:
 	r = requests.get(ws_url)
 	if r.status_code != 200:
@@ -64,18 +68,30 @@ except Exception as e:
 	sys.exit(1)
 
 # Fetch lines from result and parse data
-content = [l.strip() for l in r.content.split("\n")]
+timezone = str(tzlocal.get_localzone())
 updateTime = ""
+content = [l.strip() for l in r.content.split("\n")]
 for line in content:
 	if updateTime == "":
-		updateTime = line.split(" ", 2)
-		print "  Cache was updated on: ", updateTime[0], "(" + updateTime[1] + ")"
+		# Format: currentTime modificationTime timeZone
+		updateTime = line.split(" ", 3)
+		if updateTime[2] != timezone:
+			print bcolors.FAIL + "  Error: timezone is not the same on the server (" + updateTime[2] + ") and this computer (" + timezone + ")" + bcolors.ENDC
+			sys.exit(2)
+		print "  Cache was updated on: ", time.ctime(int(updateTime[1])), "(" + updateTime[2] + ")"
 		continue
-	row = line.split(" ", 5)
-	# Format: cache[string md5] = [int mtime, string plateforme, int filesize, string filename]
-	cache[row[0]] = [int(row[1]), row[2], int(row[3]), row[4]]
-print "  Found objects in cache: ", len(cache)
-print "  Success!"
+	row = line.split("\t", 7)
+	# Format: cache[string gameHash] = [string fileHash, int mtime, string plateforme, int filesize, string origin, string filename]
+	cache[row[0]] = {
+		"fileHash": row[1],
+		"mtime": int(row[2]),
+		"plateforme": row[3],
+		"fileSize": int(row[4]),
+		"console": row[5],
+		"fileName": row[6]
+	}
+print "  Found objects in cache:", len(cache)
+print bcolors.OKGREEN + "  Success!" + bcolors.ENDC
 
 # Working vars
 cacheWrite = ""
@@ -98,43 +114,75 @@ print ""
 print "Fetch local files..."
 for root, directories, filenames in os.walk(scan_dir):
 	for file in filenames:
+	
 		# File name and file extension
 		filename, file_extension = os.path.splitext(file)
-		# Avoid ignored files
-		if file_extension not in scan_ext:
-			continue
-		count_files += 1
 		# File full path
 		path = os.path.join(root, file)
-		# File hash
-		md5 = hashlib.md5(path).hexdigest()
-		# File last modification time
-		mtime = os.path.getmtime(path)
 		# Plateforme name
 		plateforme = os.path.basename(os.path.dirname(path))
+		
+		# Avoid ignored files
+		if file_extension not in scan_ext: continue
+		if "!" in path or "?" in path or "*" in path:
+			print bcolors.WARNING + "  [WARNING]", "Avoid illegal file name:", plateforme, "/", file + bcolors.ENDC
+			continue
+
+		# Game name hash
+		game = hashlib.md5(str(file)).hexdigest()[:8]
+		# Save file checksum (hash)
+		md5 = hashlib.md5(path).hexdigest()
+		# File last modification time
+		mtime = int(os.path.getmtime(path))
+		
+		# Add file count
+		count_files += 1
+		
 		# Change conditions
 		change = None
-		if md5 not in cache: change = "Hash"
-		#elif mtime > cache[md5][0]: change = "Time"
-		elif os.path.getsize(path) != cache[md5][2]: change = "Size"
+		if game not in cache: change = "New"
+		elif mtime > cache[game]["mtime"]: change = "TimePlus"
+		elif mtime < cache[game]["mtime"]: change = "TimeMinus"
+		elif os.path.getsize(path) != cache[game]["fileSize"]: change = "Size"
+		
 		# Check if file has changed
 		if change is not None:
+			action = "Upload"
+			if change == "TimeMinus": action = "Download"
 			# Print a log
-			print "   Upload: ", plateforme + "/" + file, "(" + sizeof_fmt(os.path.getsize(path)) + ", " + change + " change)"
+			print "   " + action + ": ", plateforme, "/", file, "(" + sizeof_fmt(os.path.getsize(path)) + ", ", game + ", " + change + " change)"
 			# Generate one time password
 			otp = str(totp.now())
 			# Begin upload
-			with open(path, 'rb') as fd:
-				# Post request
-				r = requests.post(ws_url, files={file: fd}, data={'key': otp, 'console': console_name, 'hash': md5, 'mtime': mtime, 'plateforme': plateforme})
-				if r.status_code != 200 and r.status_code != 201:
-					print bcolors.FAIL + "  [FAILURE]", str(r.status_code), r.content, "=>", md5 + bcolors.ENDC
-					count_failures += 1
-				else:
-					print "  [SUCCESS]", md5, time.ctime(mtime), str(r.status_code), r.content
-					count_changed += 1
+			if action == "Upload":
+				try:
+					with open(path, 'rb') as fd:
+						# Post request
+						r = requests.post(ws_url, files={file: fd}, data={'key': otp, 'console': console_name, 'hash': md5, 'mtime': mtime, 'plateforme': plateforme, 'gameid': game, 'gamename': file})
+						# Check status code
+						if r.status_code != 200 and r.status_code != 201:
+							print bcolors.FAIL + "  [FAILURE]", str(r.status_code), r.content + bcolors.ENDC
+							count_failures += 1
+						else:
+							print "  [" + bcolors.OKGREEN + "SUCCESS" + bcolors.ENDC + "]", time.ctime(mtime), str(r.status_code), r.content
+							count_changed += 1
+				except KeyboardInterrupt:
+					print " INTERRUPT "
+					sys.exit(2)
+				except:
+					print bcolors.FAIL + "  [FAILURE]", str(sys.exc_info()[0]) + bcolors.ENDC
+
+			# Begin download
+			else:
+				pass
+
+		# Times delta
+		#elif int(mtime) != int(cache[md5][0]):
+		#	print "   Fix time: ", plateforme + "/" + file, "(" + time.ctime(mtime) + " -> " + time.ctime(cache[md5][0]) + ", delta: " + str(mtime - cache[md5][0]) + "s)"
+
+		# No change
 		else:
 			count_unchanged += 1
 
-print "FINISHED !"
-print "Updated:", count_changed, "Total:", (count_changed + count_unchanged), "Failures:", count_failures
+print bcolors.OKGREEN + "FINISHED !" + bcolors.ENDC
+print "Updated:", count_changed, "Saves:", (count_changed + count_unchanged), "Failures:", count_failures
