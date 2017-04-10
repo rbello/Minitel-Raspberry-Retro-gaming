@@ -87,7 +87,8 @@ function error($code, $message) {
 
 date_default_timezone_set($current_timezone);
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+# List
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && empty($_GET)) {
 	if (file_exists('./.cache.php')) {
 		// Load cache
 		$cache = include './.cache.php';
@@ -96,7 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 		// Contents
 		foreach ($cache as $id => $data) {
 			$update = array_pop($data['updates']);
-			$length = filesize("./saves/{$update['hash']}");
+			$length = @filesize("./saves/{$update['hash']}");
+			if (!$length) $length = '0';
 			echo "\n{$id}\t{$update['hash']}\t{$update['mtime']}\t{$data['emulator']}\t{$length}\t{$update['from']}\t{$data['game']}";
 		}
 	}
@@ -104,11 +106,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 	exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+# Get remote save
+else if ($_SERVER['REQUEST_METHOD'] == 'GET' && !empty($_GET)) {
+	
+	// Check arguments
+	if (!array_key_exists('key', $_GET))
+		error(401, 'Missing request parameter: authentication token (key)');
+	if (!array_key_exists('console', $_GET))
+		error(400, 'Missing request parameter: console name (console)');
+	if (!array_key_exists('gameid', $_GET))
+		error(401, 'Missing request parameter: game hash identifier (gameid)');
+	if (!array_key_exists('plateforme', $_GET))
+		error(401, 'Missing request parameter: emulator name (plateforme)');
+	
+	
+	header("GameID: ok");
+	header("Plateforme: ok");
+	header("FileChecksum: ok");
+	header("FileSize: 666");
+	header("FileMtime: 198152603");
+	
+}
+
+# Post local save
+else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 	// Check arguments
 	if (!array_key_exists('key', $_POST))
-		error(401, 'Missing request parameter: authentication password (key)');
+		error(401, 'Missing request parameter: authentication token (key)');
 	if (!array_key_exists('console', $_POST))
 		error(400, 'Missing request parameter: console name (console)');
 	if (!array_key_exists('hash', $_POST))

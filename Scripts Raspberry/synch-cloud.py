@@ -36,7 +36,7 @@ import hashlib
 import time
 import pyotp
 import requests
-import urllib2
+import urllib
 from urlparse import urlparse
 import tzlocal
 
@@ -53,8 +53,13 @@ class bcolors:
 # Init cache
 cache = {}
 
-# Generate OTP
+# Create OTP generator
 totp = pyotp.TOTP(ws_api_key)
+
+print bcolors.FAIL+"  __  "+bcolors.WARNING+" _    "+bcolors.OKGREEN+" ___   "+bcolors.ENDC+"____  "+bcolors.OKBLUE+"___     "+bcolors.FAIL+"__   "+bcolors.WARNING+"_        "+bcolors.OKGREEN+"__    "+bcolors.ENDC+"__   "
+print bcolors.FAIL+" ( (` "+bcolors.WARNING+"| | | "+bcolors.OKGREEN+"| |_) "+bcolors.ENDC+"| |_  "+bcolors.OKBLUE+"| |_)   "+bcolors.FAIL+"( (` "+bcolors.WARNING+"\ \    / "+bcolors.OKGREEN+"/ /\  "+bcolors.ENDC+"/ /`_ "
+print bcolors.FAIL+" _)_) "+bcolors.WARNING+"\_\_/ "+bcolors.OKGREEN+"|_|   "+bcolors.ENDC+"|_|__ "+bcolors.OKBLUE+"|_| \   "+bcolors.FAIL+"_)_)  "+bcolors.WARNING+"\_\/\/ "+bcolors.OKGREEN+"/_/--\ "+bcolors.ENDC+"\_\_/ "
+print bcolors.ENDC
 
 # Ask for remote cache
 print "Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(ws_url)), "..."
@@ -78,7 +83,10 @@ for line in content:
 		if updateTime[2] != timezone:
 			print bcolors.FAIL + "  Error: timezone is not the same on the server (" + updateTime[2] + ") and this computer (" + timezone + ")" + bcolors.ENDC
 			sys.exit(2)
-		print "  Cache was updated on: ", time.ctime(int(updateTime[1])), "(" + updateTime[2] + ")"
+		if int(updateTime[1]) == 0:
+			print "  Cache was never updated"
+		else:
+			print "  Cache was updated on: ", time.ctime(int(updateTime[1])), "(" + updateTime[2] + ")"
 		continue
 	row = line.split("\t", 7)
 	# Format: cache[string gameHash] = [string fileHash, int mtime, string plateforme, int filesize, string origin, string filename]
@@ -90,7 +98,7 @@ for line in content:
 		"console": row[5],
 		"fileName": row[6]
 	}
-print "  Found objects in cache:", len(cache)
+print "  Saves in remote cache:", len(cache)
 print bcolors.OKGREEN + "  Success!" + bcolors.ENDC
 
 # Working vars
@@ -107,6 +115,39 @@ def sizeof_fmt(num, suffix='B'):
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
+
+class upload_in_chunks(object):
+    def __init__(self, filename, chunksize=1 << 13):
+        self.filename = filename
+        self.chunksize = chunksize
+        self.totalsize = os.path.getsize(filename)
+        self.readsofar = 0
+
+    def __iter__(self):
+        with open(self.filename, 'rb') as file:
+            while True:
+                data = file.read(self.chunksize)
+                if not data:
+                    sys.stderr.write("\n")
+                    break
+                self.readsofar += len(data)
+                percent = self.readsofar * 1e2 / self.totalsize
+                sys.stderr.write("\r   {percent:3.0f}%".format(percent=percent))
+                yield data
+
+    def __len__(self):
+        return self.totalsize
+
+class IterableToFileAdapter(object):
+    def __init__(self, iterable):
+        self.iterator = iter(iterable)
+        self.length = len(iterable)
+
+    def read(self, size=-1): # TBD: add buffer for `len(data) > size` case
+        return next(self.iterator, b'')
+
+    def __len__(self):
+        return self.length
 
 # Fetch files in scanned directory, search for configuration/save state files,
 # and do the comparison with stored cache.
@@ -125,7 +166,7 @@ for root, directories, filenames in os.walk(scan_dir):
 		# Avoid ignored files
 		if file_extension not in scan_ext: continue
 		if "!" in path or "?" in path or "*" in path:
-			print bcolors.WARNING + "  [WARNING]", "Avoid illegal file name:", plateforme, "/", file + bcolors.ENDC
+			print "  [" + bcolors.WARNING + "WARNING" + bcolors.ENDC + "]", "Avoid illegal file name:", plateforme, "/", file
 			continue
 
 		# Game name hash
@@ -141,16 +182,21 @@ for root, directories, filenames in os.walk(scan_dir):
 		# Change conditions
 		change = None
 		if game not in cache: change = "New"
-		elif mtime > cache[game]["mtime"]: change = "TimePlus"
-		elif mtime < cache[game]["mtime"]: change = "TimeMinus"
-		elif os.path.getsize(path) != cache[game]["fileSize"]: change = "Size"
+		elif mtime > cache[game]["mtime"]: change = "Newer"
+		elif mtime < cache[game]["mtime"]: change = "Older"
+		#elif md5 != cache[game]["fileHash"]: change = "Hash"
+		#elif os.path.getsize(path) != cache[game]["fileSize"]: change = "Size"
+		
+		if change is not None and change != "New" and md5 == cache[game]["fileHash"]:
+			print "  [" + bcolors.WARNING + "WARNING" + bcolors.ENDC + "]", "File was updated on remote server without checksum change:", plateforme, "/", file, "(" + game + ")"
+			continue
 		
 		# Check if file has changed
 		if change is not None:
 			action = "Upload"
-			if change == "TimeMinus": action = "Download"
+			if change == "Older": action = "Download"
 			# Print a log
-			print "   " + action + ": ", plateforme, "/", file, "(" + sizeof_fmt(os.path.getsize(path)) + ", ", game + ", " + change + " change)"
+			print "   " + action + ": ", plateforme, "/", file, "(" + sizeof_fmt(os.path.getsize(path)) + ", " + game + ", " + change + " change)"
 			# Generate one time password
 			otp = str(totp.now())
 			# Begin upload
@@ -158,10 +204,21 @@ for root, directories, filenames in os.walk(scan_dir):
 				try:
 					with open(path, 'rb') as fd:
 						# Post request
-						r = requests.post(ws_url, files={file: fd}, data={'key': otp, 'console': console_name, 'hash': md5, 'mtime': mtime, 'plateforme': plateforme, 'gameid': game, 'gamename': file})
+						args = {
+							'key': otp,
+							'console': console_name,
+							'hash': md5,
+							'mtime': mtime,
+							'plateforme': plateforme,
+							'gameid': game,
+							'gamename': file
+						}
+						r = requests.post(ws_url, files={file: fd}, data=args)
+						#r = requests.post(ws_url, files=IterableToFileAdapter(upload_in_chunks(path, chunksize=10)), data=args)
+						#r = requests.post(ws_url, files={file: IterableToFileAdapter(upload_in_chunks(path, chunksize=10))}, data=args)
 						# Check status code
 						if r.status_code != 200 and r.status_code != 201:
-							print bcolors.FAIL + "  [FAILURE]", str(r.status_code), r.content + bcolors.ENDC
+							print "  [" + bcolors.FAIL + "FAILURE" + bcolors.ENDC + "]", str(r.status_code), r.content
 							count_failures += 1
 						else:
 							print "  [" + bcolors.OKGREEN + "SUCCESS" + bcolors.ENDC + "]", time.ctime(mtime), str(r.status_code), r.content
@@ -170,19 +227,39 @@ for root, directories, filenames in os.walk(scan_dir):
 					print " INTERRUPT "
 					sys.exit(2)
 				except:
-					print bcolors.FAIL + "  [FAILURE]", str(sys.exc_info()[0]) + bcolors.ENDC
+					ex = sys.exc_info()[0]
+					print bcolors.FAIL + "  [FAILURE]", repr(ex.message), bcolors.ENDC
+					raise
 
 			# Begin download
 			else:
-				pass
+				# Get request
+				args = {
+					'key': otp,
+					'console': console_name,
+					'plateforme': plateforme,
+					'gameid': game
+				}
+				r = requests.get(ws_url + "?" + urllib.urlencode(args))
 
-		# Times delta
-		#elif int(mtime) != int(cache[md5][0]):
-		#	print "   Fix time: ", plateforme + "/" + file, "(" + time.ctime(mtime) + " -> " + time.ctime(cache[md5][0]) + ", delta: " + str(mtime - cache[md5][0]) + "s)"
+				# Invalid response code
+				if r.status_code != 200 and r.status_code != 201:
+					print "  [" + bcolors.FAIL + "FAILURE" + bcolors.ENDC + "]", str(r.status_code), r.content
+					count_failures += 1
+					continue
+				# Invalid response format
+				if "GameID" not in r.headers or "Plateforme" not in r.headers or "FileChecksum" not in r.headers or "FileSize" not in r.headers or "FileMtime" not in r.headers:
+					print "  [" + bcolors.FAIL + "FAILURE" + bcolors.ENDC + "]", "Invalid headers (missing response attributes)", str(r.status_code), r.content
+					count_failures += 1
+					continue
+
+				print "  [" + bcolors.OKGREEN + "SUCCESS" + bcolors.ENDC + "]", str(r.status_code), "(" + sizeof_fmt(int(r.headers["FileSize"])) + ", updated " + time.ctime(int(r.headers["FileMtime"])) + ")", r.content
+				count_changed += 1
+				#sys.exit(111) # TODO
 
 		# No change
 		else:
 			count_unchanged += 1
 
-print bcolors.OKGREEN + "FINISHED !" + bcolors.ENDC
-print "Updated:", count_changed, "Saves:", (count_changed + count_unchanged), "Failures:", count_failures
+print bcolors.OKGREEN + "  FINISHED !" + bcolors.ENDC
+print "  Updated:", count_changed, "Saves:", (count_changed + count_unchanged), "Failures:", count_failures
