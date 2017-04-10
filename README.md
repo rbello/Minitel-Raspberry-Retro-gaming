@@ -59,4 +59,12 @@ On the raspberry pi:
 I also used:
 - Scraper : [Universal XML Scraper](https://github.com/Universal-Rom-Tools/Universal-XML-Scraper/releases)
 
+#### Automatic Synch
+
+The console automatically synchronizes game saves backups with an HTTP server. A raspberry-side python script and a server-side PHP script ensure the synchronization of files periodically, thanks to a CRON task.
+
+[![SynchScript](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/UpdateScriptLog.png)](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/raw/master/Doc/UpdateScriptLog.png)
+
+[Python](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Scripts%20Raspberry/synch-cloud.py) and [PHP](https://github.com/rbello/Minitel-Raspberry-Retro-gaming/blob/master/Synchro/index.php) scripts uses an OTP authentication using algorithms specified in RFC 6238 and RFC 4226 (also used by Google Authenticator).
+
 *This repository contains all the files allowing the creation of a similar console. This content is copyright free.*
