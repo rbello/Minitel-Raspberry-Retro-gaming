@@ -229,16 +229,16 @@ else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	$update = true;
 	if (!array_key_exists($_POST['gameid'], $cache)) {
 		$cache[$_POST['gameid']] = array(
-			'game' => $_POST['gamename'],
+			'game'     => stripslashes($_POST['gamename']),
 			'emulator' => $_POST['plateforme'],
-			'updates' => array()
+			'updates'  => array()
 		);
 		$update = false;
 	}
 	
 	// Add update entry
 	$cache[$_POST['gameid']]['updates'][] = array(
-			'from'  => $_POST['console'],
+			'from'  => stripslashes($_POST['console']),
 			'hash'  => $_POST['hash'],
 			'mtime' => intval($_POST['mtime'])
 		);
