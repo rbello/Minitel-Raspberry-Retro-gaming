@@ -14,7 +14,7 @@
 $otp_secret = 'LSX2I5BLGSXA4T77';
 
 // n*30 sec clock tolerance
-$otp_tolerance = 2;
+$otp_tolerance = 3;
 
 // Timezone
 $current_timezone = 'Europe/Paris';
@@ -119,12 +119,45 @@ else if ($_SERVER['REQUEST_METHOD'] == 'GET' && !empty($_GET)) {
 	if (!array_key_exists('plateforme', $_GET))
 		error(401, 'Missing request parameter: emulator name (plateforme)');
 	
+	// Load cache
+	$cache = array();
+	if (file_exists('./.cache.php')) $cache = include './.cache.php';
 	
-	header("GameID: ok");
-	header("Plateforme: ok");
-	header("FileChecksum: ok");
-	header("FileSize: 666");
-	header("FileMtime: 198152603");
+	// Find game in cache
+	if (!array_key_exists($_GET['gameid'], $cache))
+		error(404, 'Game not found: ' . $_GET['gameid']);
+	
+	// Find last update
+	$game = $cache[$_GET['gameid']];
+	$update = array_pop($game['updates']);
+	$extension = pathinfo($game['game'], PATHINFO_EXTENSION);
+	
+	// Test if physical file exists
+	if (!file_exists("./saves/{$update['hash']}"))
+		error(500, 'Game backup file not found: ' . $_GET['gameid'] . '::' . $update['hash']);
+	
+	// Compute file length
+	$length = @filesize("./saves/{$update['hash']}");
+	if (!$length) $length = '0';
+	
+	// Send download headers
+	header('Content-Type: application/octet-stream');
+	header("Content-Transfer-Encoding: Binary"); 
+	//header("Content-disposition: attachment; filename=\"save.{$extension}\""); 
+	header("Content-disposition: attachment; filename=\"save.data\""); 
+	
+	// Send meta headers
+	header("GameID: {$_GET['gameid']}");
+	header("Plateforme: {$game['emulator']}");
+	header("FileChecksum: {$update['hash']}");
+	header("FileSize: {$length}");
+	header("FileMtime: {$update['mtime']}");
+	
+	// Dump file to output
+	@readfile("./saves/{$update['hash']}");
+	
+	// And stop the process
+	exit();
 	
 }
 
@@ -168,14 +201,20 @@ else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	if ($game['error'] !== UPLOAD_ERR_OK)
 		error(500, 'File upload error: ' . $game['error']);
 	
+	// Check uploaded file
+	if (filesize($game['tmp_name']) == 0)
+		error(400, 'File upload error: uploaded file is empty');
+	
 	// Load cache
 	$cache = array();
 	if (file_exists('./.cache.php')) $cache = include './.cache.php';
 	
 	// Fix hash
-	$_POST['hash'] = preg_replace("/[^A-Za-z0-9 ]/", '', $_POST['hash']);
+	$_POST['hash'] = preg_replace("/[^A-Za-z0-9]/", '', $_POST['hash']);
 
-	// TODO: test if hash hasn't changed
+	// Check hash
+	if ($_POST['hash'] != md5_file($game['tmp_name']))
+		error(406, 'Uploaded file not acceptable: invalid checksum');
 	
 	// Create store directory
 	if (!is_dir('./saves/')) mkdir('./saves/');
