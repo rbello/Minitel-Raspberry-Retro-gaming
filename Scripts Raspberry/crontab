@@ -1,2 +1,2 @@
 @reboot /home/pi/startup.sh
-*/15 * * * * /home/pi/synch-cloud.py
+*/5 * * * * /home/pi/synch-cloud.py
