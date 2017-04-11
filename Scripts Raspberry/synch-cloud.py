@@ -145,7 +145,6 @@ if len(cache) > 0:
 		plateforme = cache[game]["plateforme"]
 		file = cache[game]["fileName"]
 		path = "./RetroPie/roms/"+plateforme+"/"+file
-		print otp, console_name, plateforme, game, ws_url, path, file
 		r = synchlib.download(otp, console_name, plateforme, game, ws_url, path, file)
 		
 print ""
