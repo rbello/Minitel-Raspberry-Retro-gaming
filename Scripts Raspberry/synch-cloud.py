@@ -83,6 +83,7 @@ for root, directories, filenames in os.walk(scan_dir):
 		if file_extension not in scan_ext: continue
 		if "!" in path or "?" in path or "*" in path:
 			print "  [" + bcolors.WARNING + "WARNING" + bcolors.ENDC + "]", "Avoid illegal file name:", plateforme, "/", file
+			count_unchanged += 1
 			continue
 
 		# Game name hash
@@ -149,4 +150,4 @@ if len(cache) > 0:
 		
 print ""
 print bcolors.OKGREEN + "Finished !" + bcolors.ENDC
-print "Updated:", count_changed, "Saves:", (count_changed + count_unchanged), "Failures:", count_failures
+print "Updated:", count_changed, "Saves:", count_unchanged, "Failures:", count_failures, "Total:", (count_changed + count_unchanged + count_unchanged)
