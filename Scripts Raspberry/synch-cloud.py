@@ -150,4 +150,4 @@ if len(cache) > 0:
 		
 print ""
 print bcolors.OKGREEN + "Finished !" + bcolors.ENDC
-print "Updated:", count_changed, "Saves:", count_unchanged, "Failures:", count_failures, "Total:", (count_changed + count_unchanged + count_unchanged)
+print "Updated:", count_changed, "Ignored:", count_unchanged, "Failures:", count_failures, "Total:", (count_changed + count_unchanged)
