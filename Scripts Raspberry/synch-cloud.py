@@ -50,7 +50,7 @@ if len(sys.argv) < 4:
 console_name = sys.argv[1]
 ws_api_key = sys.argv[2]
 ws_url = sys.argv[3]
-if len(sys.argv > 4):
+if len(sys.argv) > 4:
 	scan_dir = sys.argv[4]
 
 # Create OTP generator
