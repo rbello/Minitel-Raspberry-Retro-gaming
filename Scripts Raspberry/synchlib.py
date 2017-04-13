@@ -15,6 +15,7 @@ import hashlib
 import urllib
 import time
 from urlparse import urlparse
+import traceback
 
 class bcolors:
     HEADER = '\033[95m'
@@ -126,19 +127,23 @@ def download(otp, console_name, plateforme, game, url, path, file):
 		print "            Header Length:", int(r.headers["FileSize"]), "== File:", os.path.getsize("./synch-cloud.tmp")
 		os.remove("./synch-cloud.tmp")
 		return -7
-		
-	# Log
-	print "  [" + bcolors.OKGREEN + "SUCCESS" + bcolors.ENDC + "]", str(r.status_code), "(" + sizeof_fmt(int(r.headers["FileSize"])) + ", updated " + time.ctime(int(r.headers["FileMtime"])) + ")"
 	
-	# Move
-	#print "   Rename ./synch-cloud.tmp -->", path
-	os.rename("./synch-cloud.tmp", path)
-	
-	# Touch
-	mtime = int(r.headers["FileMtime"])
-	with open(path, 'a'): os.utime(path, (mtime, mtime))
-	#print "   Touch ", time.ctime(mtime)
-	
+	try:
+		# Move
+		#print "   Rename ./synch-cloud.tmp -->", path
+		os.rename("./synch-cloud.tmp", path)
+		# Touch
+		mtime = int(r.headers["FileMtime"])
+		with open(path, 'a'): os.utime(path, (mtime, mtime))
+		#print "   Touch ", time.ctime(mtime)
+		# Log
+		print "  [" + bcolors.OKGREEN + "SUCCESS" + bcolors.ENDC + "]", str(r.status_code), "(" + sizeof_fmt(int(r.headers["FileSize"])) + ", updated " + time.ctime(int(r.headers["FileMtime"])) + ")"
+	except Exception as e:
+		print "  [" + bcolors.FAIL + "FAILURE" + bcolors.ENDC + "] " + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+		return -8
+
 	return 0
 
 def upload(otp, url, console_name, md5, mtime, plateforme, game, path, file):

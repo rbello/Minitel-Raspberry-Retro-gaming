@@ -22,9 +22,10 @@
 
 scan_ext = [".state", ".state1", ".state2", ".state3", ".state4", ".state5", ".state6", ".state7", ".state8", ".state9", ".state0", ".dat", ".nv", ".hi", ".hs", ".cfg", ".eep", ".fs", ".sfc", ".st0", ".sra", ".fs"]
 
-simulation = False
-
 scan_dir = "/home/pi/RetroPie/saves/"
+
+simulation = False
+statesAreInEmulatorSubFolders = False
 
 ############ END OF CONFIGURATION ############
 
@@ -156,7 +157,9 @@ if len(cache) > 0:
 		# Simulation
 		if simulation == True: continue
 		otp = str(totp.now())
-		path = scan_dir + plateforme + "/" + file
+		path = scan_dir + file
+		if statesAreInEmulatorSubFolders == True:
+			path = scan_dir + plateforme + "/" + file
 		r = synchlib.download(otp, console_name, plateforme, game, ws_url, path, file)
 		if r == 0: count_changed += 1
 		else: count_failures += 1
