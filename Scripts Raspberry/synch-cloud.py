@@ -20,9 +20,11 @@
 #   savefile_directory = "/home/pi/RetroPie/saves/"
 #   savestate_directory = "/home/pi/RetroPie/saves/"
 
-scan_dir = "/home/pi/RetroPie/saves/"
 scan_ext = [".state", ".state1", ".state2", ".state3", ".state4", ".state5", ".state6", ".state7", ".state8", ".state9", ".state0", ".dat", ".nv", ".hi", ".hs", ".cfg", ".eep", ".fs", ".sfc", ".st0", ".sra", ".fs"]
+
 simulation = False
+
+scan_dir = "/home/pi/RetroPie/saves/"
 
 ############ END OF CONFIGURATION ############
 
@@ -43,11 +45,13 @@ class bcolors:
 
 # Extract command arguments
 if len(sys.argv) < 4:
-	print bcolors.FAIL + "Usage: synch-cloud.py <consoleName> <secretKey> <remoteUrl>" + bcolors.ENDC
+	print bcolors.FAIL + "Usage: synch-cloud.py <consoleName> <secretKey> <remoteUrl> [scanDir]" + bcolors.ENDC
 	sys.exit(1)
 console_name = sys.argv[1]
 ws_api_key = sys.argv[2]
 ws_url = sys.argv[3]
+if len(sys.argv > 4):
+	scan_dir = sys.argv[4]
 
 # Create OTP generator
 totp = pyotp.TOTP(ws_api_key)
