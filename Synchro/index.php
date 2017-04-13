@@ -87,8 +87,15 @@ function error($code, $message) {
 
 date_default_timezone_set($current_timezone);
 
+# Keygen
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['keygen'])) {
+	require_once 'GoogleAuthenticator.php';
+	$ga = new PHPGangsta_GoogleAuthenticator();
+	echo $otp_secret = $ga->createSecret();
+}
+
 # List
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && empty($_GET)) {
+else if ($_SERVER['REQUEST_METHOD'] == 'GET' && empty($_GET)) {
 	header("Content-type: text/plain");
 	if (file_exists('./.cache.php')) {
 		// Load cache
@@ -251,3 +258,4 @@ else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	echo 'OK';
 
 }
+
