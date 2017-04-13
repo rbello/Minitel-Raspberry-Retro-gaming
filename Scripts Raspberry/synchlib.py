@@ -172,9 +172,9 @@ def upload(otp, url, console_name, md5, mtime, plateforme, game, path, file):
 		print bcolors.FAIL + "  [FAILURE]", repr(ex.message), bcolors.ENDC
 		raise
 
-def loadcache(url):
+def loadcache(url, clientId):
 	# Ask for remote cache
-	print "Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(url)), "..."
+	print "Connecting to", "{uri.scheme}://{uri.netloc}/".format(uri=urlparse(url)), "from", clientId, "..."
 	try:
 		r = requests.get(url)
 		if r.status_code != 200:

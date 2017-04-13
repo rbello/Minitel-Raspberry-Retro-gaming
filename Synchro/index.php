@@ -11,7 +11,7 @@
 # Copyleft 2017 - evolya.fr
 
 // Secret key
-$otp_secret = 'LSX2I5BLGSXA4T77';
+$otp_secret = include 'secretKey.php';
 
 // n*30 sec clock tolerance
 $otp_tolerance = 3;
@@ -89,6 +89,7 @@ date_default_timezone_set($current_timezone);
 
 # List
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && empty($_GET)) {
+	header("Content-type: text/plain");
 	if (file_exists('./.cache.php')) {
 		// Load cache
 		$cache = include './.cache.php';
